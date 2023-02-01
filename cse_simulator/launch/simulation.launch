@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+
+    <node pkg="cse_simulator" type="CSEI.py" name="csei_simulator"/>
+
+</launch>

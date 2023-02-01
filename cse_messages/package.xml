@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cse_messages</name>
+  <version>0.0.0</version>
+  <description>The cse_messages package</description>
+
+  <maintainer email="emir.cem.gezer@ntnu.no">Emir Cem Gezer</maintainer>
+
+  <license>GPLv3</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>message_generation</depend>
+  <depend>nav_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>message_runtime</depend>
+
+</package>
