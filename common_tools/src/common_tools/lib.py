@@ -1,4 +1,24 @@
 #!/usr/bin/env python3
+#
+# This file is part of CyberShip Enterpries Suite.
+#
+# CyberShip Enterpries Suite software is free software: you can redistribute it
+# and/or modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# CyberShip Enterpries Suite is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+# more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# CyberShip Enterpries Suite. If not, see <https://www.gnu.org/licenses/>.
+#
+# Author: Emir Cem Gezer
+# Email: emir.cem.gezer@ntnu.no
+# Year: 2022
+# Copyright (C) 2023 NTNU Marine Cybernetics Laboratory
 
 import rospy
 import numpy as np
@@ -38,40 +58,40 @@ class Qualisys():
     def get_data(self):
         return self.eta
 
-class DS4_Controller():
-    """
-    The controller listens to the /joy topic and maps all input signals from the DS4 to a variable that can be called
-    """
-    def __init__(self):
-        self.x = self.square = self.circle = self.triangle = self.rightArrow = self.leftArrow = self.upArrow = self.DownArrow = self.L1 = self.R1 = self.L2 = self.R2 = self.L3 = self.R3 = self.share = self.options = self.PS = self.pad = 0
-        self.lStickX = self.lStickY = self.rStickX = self.rStickY = self.L2A = self.R2A = 0.0
+# class DS4_Controller():
+#     """
+#     The controller listens to the /joy topic and maps all input signals from the DS4 to a variable that can be called
+#     """
+#     def __init__(self):
+#         self.x = self.square = self.circle = self.triangle = self.rightArrow = self.leftArrow = self.upArrow = self.DownArrow = self.L1 = self.R1 = self.L2 = self.R2 = self.L3 = self.R3 = self.share = self.options = self.PS = self.pad = 0
+#         self.lStickX = self.lStickY = self.rStickX = self.rStickY = self.L2A = self.R2A = 0.0
 
-    def updateState(self, data):
-        self.x = data.buttons[3]
-        self.square = data.buttons[0]
-        self.circle = data.buttons[2]
-        self.triangle = data.buttons[1]
-        self.rightArrow = data.buttons[16]
-        self.leftArrow = data.buttons[14]
-        self.upArrow = data.buttons[15]
-        self.DownArrow = data.buttons[17]
-        self.L1 = data.buttons[4]
-        self.R1 = data.buttons[6]
-        self.L2 = data.buttons[5]
-        self.R2 = data.buttons[7]
-        self.L3 = data.buttons[12]
-        self.R3 = data.buttons[13]
-        self.options = data.buttons[9]
-        self.share = data.buttons[8]
-        self.PS = data.buttons[10]
-        self.pad = data.buttons[11]
+#     def updateState(self, data):
+#         self.x = data.buttons[3]
+#         self.square = data.buttons[0]
+#         self.circle = data.buttons[2]
+#         self.triangle = data.buttons[1]
+#         self.rightArrow = data.buttons[16]
+#         self.leftArrow = data.buttons[14]
+#         self.upArrow = data.buttons[15]
+#         self.DownArrow = data.buttons[17]
+#         self.L1 = data.buttons[4]
+#         self.R1 = data.buttons[6]
+#         self.L2 = data.buttons[5]
+#         self.R2 = data.buttons[7]
+#         self.L3 = data.buttons[12]
+#         self.R3 = data.buttons[13]
+#         self.options = data.buttons[9]
+#         self.share = data.buttons[8]
+#         self.PS = data.buttons[10]
+#         self.pad = data.buttons[11]
 
-        self.lStickX = -data.axes[0]
-        self.lStickY = data.axes[1]
-        self.rStickX = -data.axes[2]
-        self.rStickY = data.axes[3]
-        self.L2A = data.axes[4]
-        self.R2A = data.axes[5]
+#         self.lStickX = -data.axes[0]
+#         self.lStickY = data.axes[1]
+#         self.rStickX = -data.axes[2]
+#         self.rStickY = data.axes[3]
+#         self.L2A = data.axes[4]
+#         self.R2A = data.axes[5]
 
 
 class Forces():
