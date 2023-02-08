@@ -68,7 +68,7 @@ class CSEI:
         self.tauMsg = Float64MultiArray()
         self.pubOdom = rospy.Publisher('/qualisys/CSEI/odom', Odometry, queue_size=1)
         self.pubTau = rospy.Publisher('/CSEI/tau', Float64MultiArray, queue_size=1)
-        self.subU = rospy.Subscriber('/CSEI/u', Float64MultiArray, self.callback)
+        self.subU = rospy.Subscriber('/CSEI/u_cmd', Float64MultiArray, self.callback)
         self.u = np.zeros(5)
         self.dt = 0.01
 

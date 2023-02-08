@@ -20,25 +20,36 @@
 # Year: 2022
 # Copyright (C) 2023 NTNU Marine Cybernetics Laboratory
 
+################################################################################
+# Use this template as a suggestion.
+################################################################################
+
 import rospy
 import math
 import numpy as np
-from commom_tools.lib import ps4, tau, u_data, observer, observerNodeInit, nodeEnd
-from common_tools.math_tools import *
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64MultiArray
+
 from cse_messages import observer_message
 
-# Write your code here
+class Observer:
+    def __init__(self):
+        print("not implemented!")
 
 
-if __name__ == '__main__':
-    node = observerNodeInit()
-    r = rospy.Rate(100) # Usually set to 100 Hz
+def main():
+    rospy.init_node("observer_node")
+
+    # Usually set to 20 Hz
+    r = rospy.Rate(20)
+
     while not rospy.is_shutdown():
-        # Calls to any functions and methods should be handled inside this while-loop
-        loop()
+        # Place your custom code here
+
+
+        # Sleep as much as rate 'r'
         r.sleep()
 
-    nodeEnd(node)
+if __name__ == '__main__':
+    main()
 

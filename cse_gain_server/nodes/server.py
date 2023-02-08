@@ -20,6 +20,11 @@
 # Year: 2022
 # Copyright (C) 2023 NTNU Marine Cybernetics Laboratory
 
+
+################################################################################
+# Do not use this code as of now. noted at 2023-02-08
+################################################################################
+
 import rospy
 
 from dynamic_reconfigure.server import Server
@@ -46,7 +51,12 @@ def callback(config, level):
     U_ref: {U_ref} \n""".format(**config))
     return config
 
-if __name__=="__main__":
+def main():
+    pass
+
+if __name__ == "__main__":
+    main()
+
     rospy.init_node("gain_server", anonymous = False)
     srv = Server(gainsConfig, callback)
     rospy.spin()

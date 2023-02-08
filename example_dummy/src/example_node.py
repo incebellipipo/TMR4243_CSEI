@@ -1,5 +1,18 @@
 #!/usr/bin/env python3
-#
+
+### 1.
+#       ^
+#       |
+#       |
+# This line is important. Linux system uses this line to find out which
+# interpreter will read this file. Up there, we say, 'hey computer, use python3
+# to read this file.
+
+### 2.
+# You need to make python file an executable file.
+#   $ chmod +x <file_name>.py
+
+### 3.
 # This file is part of CyberShip Enterpries Suite.
 #
 # CyberShip Enterpries Suite software is free software: you can redistribute it
@@ -20,26 +33,20 @@
 # Year: 2022
 # Copyright (C) 2023 NTNU Marine Cybernetics Laboratory
 
+### 4.
+# You need to import rospy
+import rospy
+import std_msgs.msg
 
-PACKAGE = "cse_gain_server"
+class ReverseString:
+    def __init__(self):
 
-from dynamic_reconfigure.parameter_generator_catkin import *
+        pass
 
-gen = ParameterGenerator()
 
-# Observer injection gains
-gen.add("L1", double_t,  0, "Injection gain eta_1", 10, 15, 5)
-gen.add("L2", double_t,  0, "Injection gain eta_2", 5, 5, 1)
-gen.add("L3", double_t,  0, "Injection gain eta_3", 0.2, 0.2, 0.3)
+def main():
+    rospy.init_node("example_dummy")
 
-#Controller gains
 
-gen.add("Kp", double_t,  0, "Proportional controller gain", 0.1, 0.1, 1.0)
-gen.add("Kd", double_t,  0, "Derivative controller gain", 0.12, 0.12, 0.33)
-gen.add("Ki", double_t,  0, "Integral controller gain", 0.0, 0.0, 0.0)
-gen.add("mu", double_t,  0, "mu", 0, 0, 1)
-gen.add("U_ref", double_t, 0, "Reference speed", 0, 0, 10)
-
-gen.add("l_p", double_t, 0, "Path length", 0, 0, 10)
-
-exit(gen.generate(PACKAGE, "cse_gain_server", "gains"))
+if __name__ == "__main__":
+    main()

@@ -17,13 +17,15 @@
 #
 # Maintainer: Emir Cem Gezer
 # Email: emir.cem.gezer@ntnu.no
-# Year: 2022
+# Year: 2023
 # Copyright (C) 2023 NTNU Marine Cybernetics Laboratory
+
+################################################################################
+# Use this template as a suggestion.
+################################################################################
 
 import rospy
 import numpy as np
-from common_tools.tools.lib import tau, u_data, thrustAllocationNodeInit, nodeEnd
-from common_tools.math_tools import *
 from std_msgs import Float64MultiArray
 
 class ThrustAllocation:
@@ -33,7 +35,10 @@ class ThrustAllocation:
     def odom_callback(self, msg):
         pass
 
-    def joy_callback(self, msg):
+    def force_callback(self, msg):
+        pass
+
+    def publish_u_command(self):
         pass
 
 
@@ -42,8 +47,14 @@ def main():
 
     r = rospy.Rate(10)
 
+    thrust_allocation = ThrustAllocation()
+
     while not rospy.is_shutdown():
         # You may place your code here
+
+        thrust_allocation.publish_u_command()
+
+        # Sleep as much as 'r'
         r.sleep()
 
 if __name__ == '__main__':

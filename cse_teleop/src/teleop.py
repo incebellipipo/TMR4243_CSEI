@@ -46,10 +46,27 @@ class CSETeleop:
 
         # Initialize publishers and subscribers
         self.joy_sub = rospy.Subscriber("/joy", Joy, self.joy_callback)
-        self.u_pub = rospy.Publisher("CSEI/u", Float64MultiArray, queue_size=5)
+        self.u_cmd_pub = rospy.Publisher("CSEI/u_cmd", Float64MultiArray, queue_size=5)
 
+        # Here I read a ros parameter called 'joy_type' with private namespace
+        # with default value 'psds4' as PlayStation DualShock 4
         joy_type_str = rospy.get_param("~joy_type", "psds4")
 
+        # After reading it as string, parsing this information and recording it
+        # as enum, so that whenever I want to check, I don't need to do a string
+        # comparison.
+        if joy_type_str == "psds4":
+            self.joy_type = JoyType.PSDS4
+        elif joy_type_str == "psds3":
+            self.joy_type = JoyType.PSDS3
+        else:
+            self.joy_type = None
+
+        # Creating all the member variables. I am having them as member
+        # variables because I need them elsewhere in multiple places.
+        # I could have created them as global variables but good coding
+        # practices often suggests namespacing, having class members over global
+        # variables.
         self.l_stick_x = 0
         self.l_stick_y = 0
         self.r_stick_x = 0
@@ -57,36 +74,50 @@ class CSETeleop:
         self.l2_trigger = 0
         self.r2_trigger = 0
 
-        if joy_type_str == "psds4":
-            self.joy_type = JoyType.PSDS4
-        elif joy_type_str == "psds3":
-            self.joy_type = JoyType.PSDS3
-
-        self.u = np.zeros(5)
-
     def joy_callback(self, msg):
+        """
+        This callback function will be called whenever there is a message on
+        '/joy' topic, and 'msg' variable will carry the data that is being
+        streamed on that topic.
+        """
 
-        # Translate sticks
+        # Check the joystick type
         if (self.joy_type == JoyType.PSDS4) and (self.joy_type == JoyType.PSDS3):
+            # Translate sticks
             self.l_stick_x = msg.axes[0]
             self.l_stick_y = msg.axes[1]
             self.r_stick_x = msg.axes[3]
             self.r_stick_y = msg.axes[4]
             self.l2_trigger = msg.axes[2]
             self.r2_trigger = msg.axes[5]
-        # Implement here for other types of controllers
+        else:
+            # Unimplemented controller, we can not do anything.
+            #
+            # ROS can work with different joystick brands and not all of them
+            # have the exact same mapping.
+            return
 
-        # Measure thust forces
-        self.u = self.joystict_to_u()
+        # Create a message object.
+        u_cmd_msg = Float64MultiArray()
 
-        # Publish the hell out of it.
-        u_msg = Float64MultiArray()
-        u_msg.data = self.u
-        self.u_pub.publish(u_msg)
+        # Measure the control command
+        u_cmd_msg.data = self.joystick_to_u()
 
-    def joystict_to_u(self):
+        # Publish the u_msg message using the publisher
+        self.u_cmd_pub.publish(u_cmd_msg)
 
-        u = numpy.zeros(5)
+    def joystick_to_u(self):
+        """
+        This code translates joystick data to 'u' vector to control the vehicle.
+        """
+
+        # Create a control command vector
+        # u[0] -> bow tunnel thruster
+        # u[1] -> port voith Voith Schneider Propeller force
+        # u[2] -> starboard voith Voith Schneider Propeller force
+        # u[3] -> force angle for port VSP thruster
+        # u[4] -> force angle for starboard VSP thruster
+        u = np.zeros(5)
 
         ### Acutator commands ###
         u[0] = -0.5 * (self.l2_trigger - self.r2_trigger)
@@ -101,16 +132,19 @@ class CSETeleop:
         return u
 
 
-
 def main():
+    """Main function"""
+
+    # Initialize the ROS node
     rospy.init_node("csei_joy_teleop")
 
-    r = rospy.Rate(10)
-
+    # Create the Teleop object
     teleop = CSETeleop()
 
+    # Let the ROS 'spin'. All the callbacks will continue to execute themselves.
     rospy.spin()
 
 
+# Call the 'main()' function if the module have called as executable.
 if __name__ == '__main__':
     main()

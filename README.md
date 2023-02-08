@@ -4,6 +4,11 @@ This software suite designed for to be used as a course material. It should not
 be taken as a basis for other projects as the software might change for the
 vehicle.
 
+## Crash course!
+
+Do take a look at the [Jupyter Notebook inside](example_dummy/notebooks/example_node.ipynb) `example_dummy` package.
+The code inside of the [`example_dummy`](example_dummy) package.
+
 ## Installation
 
 > This package is designed for Python 3, ROS Noetic, and Ubuntu 20.04 (Focal).
@@ -45,22 +50,30 @@ python.
 
   - $x \iff $ `pose.pose.position.x`
   - $y \iff $ `pose.pose.position.y`
-  - $psi \iff $ `pose.pose.orientation.`
+  - $psi \iff $ yaw angle
+      ```python
+      [_, _, yaw] = common_tools.math_tools.quat2eul(
+        pose.pose.orientation.x,
+        pose.pose.orientation.y,
+        pose.pose.orientation.z,
+        pose.pose.orientation.w,
+      )
+      ```
 
-- **topic**: `/CSEI/u`
+- **topic**: `/CSEI/u_cmd`
 
   **type**: `std_msgs/Float64MultiArray`
 
-  **description**: Arbitrary control inputs for the actuators. It can be
-  published by teleop node or your custom control node.
+  **description**: Control inputs for the actuators. It can be published by
+  teleop node or your custom control node.
 
-  $u = [u_1, u_2, u_3, \alpha_1, \alpha_2]^\top$
+  $u_{cmd} = [u_1, u_2, u_3, \alpha_1, \alpha_2]^\top$
 
   - $u_1 \in [-1, 1]$, Controls the tunnel thruster
-  - $u_2 \in [0, 1]$, Controls the force for port VST
-  - $u_3 \in [0, 1]$, Controls the force for starboard VST
-  - $\alpha_1 \in [-\pi, \pi]$, Controls the angle for port VST
-  - $\alpha_2 \in [-\pi, \pi]$, Controls the angle for starboard VST
+  - $u_2 \in [0, 1]$, Controls the force for port VSP thruster
+  - $u_3 \in [0, 1]$, Controls the force for starboard VSP thruster
+  - $\alpha_1 \in [-\pi, \pi]$, Controls the angle for port VSP thruster
+  - $\alpha_2 \in [-\pi, \pi]$, Controls the angle for starboard VSP thruster
 
 - **topic**: `/CSEI/tau`
 
@@ -75,3 +88,32 @@ python.
   **type**: `sensor_msgs/Joy`
 
   **description**: Joystick inputs
+
+## Custom Messages
+
+- `cse_messages/observer_message.msg`
+    ```
+    float64[] eta
+    float64[] nu
+    float64[] bias
+    ```
+- `cse_messages/reference_message.msg`
+    ```
+    float64[] eta_d
+    float64[] eta_ds
+    float64[] eta_ds2
+    float64 w
+    float64 v_s
+    float64 v_ss
+    ```
+- `cse_messages/s_message.msg`
+    ```
+    float64 s
+    float64 s_dot
+    ```
+
+## Glossary of variables
+
+- $\eta \rightarrow$ State variable
+- $u \rightarrow$ Control command
+- $\tau \rightarrow$ Body fixed force

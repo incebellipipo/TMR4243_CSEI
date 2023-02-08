@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(template_thrust_allocation)
+project(template_joystick_force)
 
 
 find_package(catkin REQUIRED COMPONENTS

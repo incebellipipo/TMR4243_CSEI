@@ -18,5 +18,8 @@
 # Year: 2022
 # Copyright (C) 2023 NTNU Marine Cybernetics Laboratory
 
+################################################################################
+# Path parameterization
+
 float64 s
 float64 s_dot

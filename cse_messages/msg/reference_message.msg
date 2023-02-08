@@ -18,6 +18,9 @@
 # Year: 2022
 # Copyright (C) 2023 NTNU Marine Cybernetics Laboratory
 
+################################################################################
+# TODO: decriptions
+
 float64[] eta_d
 float64[] eta_ds
 float64[] eta_ds2
