@@ -48,9 +48,9 @@ python.
 
   $\eta = [x, y, \psi]^\top$
 
-  - $x \iff $ `pose.pose.position.x`
-  - $y \iff $ `pose.pose.position.y`
-  - $psi \iff $ yaw angle
+  - $x \iff$ `pose.pose.position.x`
+  - $y \iff$ `pose.pose.position.y`
+  - $psi \iff$ yaw angle
       ```python
       [_, _, yaw] = common_tools.math_tools.quat2eul(
         pose.pose.orientation.x,
