@@ -6,8 +6,7 @@ vehicle.
 
 ## Crash course!
 
-Do take a look at the [Jupyter Notebook inside](example_dummy/notebooks/example_node.ipynb) `example_dummy` package.
-The code inside of the [`example_dummy`](example_dummy) package.
+Do take a look at the [Jupyter Notebooks inside](notebooks) and the code inside of the [`example_dummy`](example_dummy) package.
 
 ## Installation
 

@@ -82,7 +82,7 @@ class CSETeleop:
         """
 
         # Check the joystick type
-        if (self.joy_type == JoyType.PSDS4) and (self.joy_type == JoyType.PSDS3):
+        if (self.joy_type == JoyType.PSDS4) or (self.joy_type == JoyType.PSDS3):
             # Translate sticks
             self.l_stick_x = msg.axes[0]
             self.l_stick_y = msg.axes[1]
