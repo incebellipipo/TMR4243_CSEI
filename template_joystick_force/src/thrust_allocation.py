@@ -22,7 +22,7 @@
 
 import rospy
 import numpy as np
-from std_msgs import Float64MultiArray
+from std_msgs.msg import Float64MultiArray
 
 class JoystickForce:
     def __init__(self):

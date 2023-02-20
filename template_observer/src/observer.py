@@ -37,9 +37,12 @@ class Observer:
     def __init__(self):
         print("not implemented!")
 
-        self.L1 = 1
-        self.L2 = 1
-        self.L3 = 1
+        # Read parameters from the parameter server. Use the provided launch
+        #   file to use this functionality. Second argument is the default
+        #   value.
+        self.L1 = rospy.get_param('L1', 1)
+        self.L2 = rospy.get_param('L2', 1)
+        self.L3 = rospy.get_param('L3', 1)
 
         # Dynamic reconfigure initialization
         self.dynamic_reconfigure_server = dynamic_reconfigure.server.Server(
@@ -55,6 +58,8 @@ class Observer:
         self.L1 = config.L1
         self.L2 = config.L2
         self.L3 = config.L3
+
+        print(config)
 
         return config
 
