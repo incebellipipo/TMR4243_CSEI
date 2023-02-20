@@ -29,19 +29,44 @@ import math
 import numpy as np
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64MultiArray
-
-from cse_messages import observer_message
+import dynamic_reconfigure.server
+from cse_gain_server.cfg import gainsConfig
+from cse_messages.msg import observer_message
 
 class Observer:
     def __init__(self):
         print("not implemented!")
 
+        self.L1 = 1
+        self.L2 = 1
+        self.L3 = 1
+
+        # Dynamic reconfigure initialization
+        self.dynamic_reconfigure_server = dynamic_reconfigure.server.Server(
+            gainsConfig, self.dynamic_reconfigure_callback)
+
+
+
+    def dynamic_reconfigure_callback(self, config, level):
+        """
+        Dynamic reconfigure callback.
+        The programmer can utilize this function for fine tuning the parameters
+        """
+        self.L1 = config.L1
+        self.L2 = config.L2
+        self.L3 = config.L3
+
+        return config
+
+
 
 def main():
     rospy.init_node("observer_node")
 
-    # Usually set to 20 Hz
-    r = rospy.Rate(20)
+    observer = Observer()
+
+    # Set your rate in Hertz
+    r = rospy.Rate(100)
 
     while not rospy.is_shutdown():
         # Place your custom code here
