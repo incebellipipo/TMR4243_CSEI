@@ -69,8 +69,8 @@ python.
   $u_{cmd} = [u_1, u_2, u_3, \alpha_1, \alpha_2]^\top$
 
   - $u_1 \in [-1, 1]$, Controls the tunnel thruster
-  - $u_2 \in [0, 1]$, Controls the force for port VSP thruster
-  - $u_3 \in [0, 1]$, Controls the force for starboard VSP thruster
+  - $u_2 \in [0, 1]$, Controls the RPM of the port VSP thruster
+  - $u_3 \in [0, 1]$, Controls the RPM of the starboard VSP thruster
   - $\alpha_1 \in [-\pi, \pi]$, Controls the angle for port VSP thruster
   - $\alpha_2 \in [-\pi, \pi]$, Controls the angle for starboard VSP thruster
 
