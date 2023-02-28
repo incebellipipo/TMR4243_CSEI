@@ -66,11 +66,11 @@ python.
   **description**: Control inputs for the actuators. It can be published by
   teleop node or your custom control node.
 
-  $u_{cmd} = [u_1, u_2, u_3, \alpha_1, \alpha_2]^\top$
+  $u_{cmd} = [u_0, u_1, u_2, \alpha_1, \alpha_2]^\top$
 
-  - $u_1 \in [-1, 1]$, Controls the tunnel thruster
-  - $u_2 \in [0, 1]$, Controls the RPM of the port VSP thruster
-  - $u_3 \in [0, 1]$, Controls the RPM of the starboard VSP thruster
+  - $u_0 \in [-1, 1]$, Controls the tunnel thruster
+  - $u_1 \in [0, 1]$, Controls the RPM of the port VSP thruster
+  - $u_2 \in [0, 1]$, Controls the RPM of the starboard VSP thruster
   - $\alpha_1 \in [-\pi, \pi]$, Controls the angle for port VSP thruster
   - $\alpha_2 \in [-\pi, \pi]$, Controls the angle for starboard VSP thruster
 
