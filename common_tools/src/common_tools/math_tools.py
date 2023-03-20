@@ -89,7 +89,7 @@ def yaw2quat(psi):
 #
 #    return np.array([roll, pitch, yaw])
 
-def quat2eul(x, y, w, z):
+def quat2eul(x, y, z, w):
     """
     Convert a quaternion into euler angles (roll, pitch, yaw)
     roll is rotation around x in radians (counterclockwise)
