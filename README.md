@@ -3,10 +3,10 @@
 This software suite designed for to be used as a course material. It should not
 be taken as a basis for other projects as the software might change for the
 vehicle.
-
+<!--
 ## Crash course!
 
-Do take a look at the [Jupyter Notebooks inside](notebooks) and the code inside of the [`example_dummy`](example_dummy) package.
+Do take a look at the [Jupyter Notebooks inside](notebooks) and the code inside of the [`example_dummy`](example_dummy) package. -->
 
 ## Installation
 
@@ -35,7 +35,7 @@ python.
 
 1. If there is any problem with the instructions, create a github issue.
 
-
+<!--
 ## Topics
 
 - **topic**: `/qualisys/CSEI/odom`
@@ -115,4 +115,4 @@ python.
 
 - $\eta \rightarrow$ State variable
 - $u \rightarrow$ Control command
-- $\tau \rightarrow$ Body fixed force
+- $\tau \rightarrow$ Body fixed force -->
