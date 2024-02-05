@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<launch>
-
-    <node pkg="template_observer" name="observer" type="observer.py" output="screen">
-        <rosparam command="load" file="$(find template_observer)/param/observer_config.yaml"/>
-    </node>
-
-</launch>
