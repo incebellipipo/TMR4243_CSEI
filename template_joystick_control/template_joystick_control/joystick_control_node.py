@@ -33,9 +33,9 @@ from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
-from template_joystick_force.joystick_simple import joystick_simple
-from template_joystick_force.joystick_force_basin_relative import joystick_force_basin_relative
-from template_joystick_force.joystick_force_body_relative import joystick_force_body_relative
+from template_joystick_control.joystick_simple import joystick_simple
+from template_joystick_control.joystick_force_basin_relative import joystick_force_basin_relative
+from template_joystick_control.joystick_force_body_relative import joystick_force_body_relative
 
 
 class JoystickForce(rclpy.node.Node):
@@ -57,6 +57,8 @@ class JoystickForce(rclpy.node.Node):
 
         self.subs["joy"] = self.create_subscription(
             sensor_msgs.msg.Joy, '/joy', self.joy_callback, 10)
+
+        self.joystick_name = self.declare_parameter('joystick_name', 'PS4')
 
         self.current_task  = self.declare_parameter('task', 'simple')
         self.current_task.value
