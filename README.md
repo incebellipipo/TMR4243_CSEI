@@ -10,8 +10,8 @@ Do take a look at the [Jupyter Notebooks inside](notebooks) and the code inside 
 
 ## Installation
 
-> This package is designed for Python 3, ROS Noetic, and Ubuntu 20.04 (Focal).
-Before proceeding with the packages, please follow the installations for ROS and
+> This package is designed for Python 3, ROS Humble, and Ubuntu 22.04 (Focal).
+Before proceeding with the packages, please follow the [installations for ROS](https://docs.ros.org/en/humble/Installation.html) and
 python.
 
 1. Create a workspace
@@ -35,68 +35,69 @@ python.
 
 1. If there is any problem with the instructions, create a github issue.
 
-<!--
+## Updating the package
+
+The package is updated with `git` command.
+
+## Quick Start
+
+![Initial command](docs/quickstart.gif)
+```bash
+ros2 launch tmr4243_utilities utilities.launch.xml
+```
+
+See the simulation
+![Simulation](docs/quickstart_rviz.png)
+
 ## Topics
 
-- **topic**: `/qualisys/CSEI/odom`
+- **topic**: `/CSEI/control/eta`
 
-  **type**: nav_msgs/Odometry
+  **type**: `std_msgs/msg/Float32Multiarray`
 
   **description**: Holds the navigation data for the vehicle. Position and
   orientation
 
   $\eta = [x, y, \psi]^\top$
 
-  - $x \iff$ `pose.pose.position.x`
-  - $y \iff$ `pose.pose.position.y`
-  - $psi \iff$ yaw angle
-      ```python
-      [_, _, yaw] = common_tools.math_tools.quat2eul(
-        pose.pose.orientation.x,
-        pose.pose.orientation.y,
-        pose.pose.orientation.z,
-        pose.pose.orientation.w,
-      )
-      ```
+- **topic**: `/CSEI/control/u_cmd`
 
-- **topic**: `/CSEI/u_cmd`
-
-  **type**: `std_msgs/Float64MultiArray`
+  **type**: `std_msgs/msg/Float64MultiArray`
 
   **description**: Control inputs for the actuators. It can be published by
   teleop node or your custom control node.
 
   $u_{cmd} = [u_0, u_1, u_2, \alpha_1, \alpha_2]^\top$
 
-  - $u_0 \in [-1, 1]$, Controls the tunnel thruster
-  - $u_1 \in [0, 1]$, Controls the RPM of the port VSP thruster
-  - $u_2 \in [0, 1]$, Controls the RPM of the starboard VSP thruster
-  - $\alpha_1 \in [-\pi, \pi]$, Controls the angle for port VSP thruster
-  - $\alpha_2 \in [-\pi, \pi]$, Controls the angle for starboard VSP thruster
+  - $u_0 \in [-1, 1]$, Controls the force of the tunnel thruster
+  - $u_1 \in [0, 1]$, Controls the force of the port VSP thruster
+  - $u_2 \in [0, 1]$, Controls the force of the starboard VSP thruster
+  - $\alpha_1 \in [-\pi, \pi]$, Controls the force direction for port VSP thruster
+  - $\alpha_2 \in [-\pi, \pi]$, Controls the force direction for starboard VSP thruster
 
-- **topic**: `/CSEI/tau`
+- **topic**: `/CSEI/control/tau`
 
-  **type**: `std_msgs/Float64MultiArray`
+  **type**: `std_msgs/msg/Float64MultiArray`
 
   **description**: body fixed force. It is published by the simulator.
 
-  $\tau = [f_x, f_y, \psi_z]^\top$
+  $\tau = [F_x, F_y, M_z]^\top$
 
 - **topic**: `/joy`
 
-  **type**: `sensor_msgs/Joy`
+  **type**: `sensor_msgs/msg/Joy`
 
   **description**: Joystick inputs
 
 ## Custom Messages
 
-- `cse_messages/observer_message.msg`
+- `tmr4243_interfaces/msg/observer.msg`
     ```
     float64[] eta
     float64[] nu
     float64[] bias
     ```
-- `cse_messages/reference_message.msg`
+- `tmr4243_interfaces/msg/reference.msg`
     ```
     float64[] eta_d
     float64[] eta_ds
@@ -105,7 +106,7 @@ python.
     float64 v_s
     float64 v_ss
     ```
-- `cse_messages/s_message.msg`
+- `tmr4243_interfaces/msg/s.msg`
     ```
     float64 s
     float64 s_dot
@@ -115,4 +116,4 @@ python.
 
 - $\eta \rightarrow$ State variable
 - $u \rightarrow$ Control command
-- $\tau \rightarrow$ Body fixed force -->
+- $\tau \rightarrow$ Body fixed force
