@@ -22,7 +22,7 @@ install(
 
 install(
   PROGRAMS
-    ${PROJECT_NAME}/thurst_allocation_node.py
+    ${PROJECT_NAME}/thrust_allocation_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
