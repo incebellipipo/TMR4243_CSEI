@@ -23,7 +23,6 @@
 import rclpy
 import rclpy.node
 import tmr4243_interfaces.msg
-import sensor_msgs.msg
 import geometry_msgs.msg
 
 from tf2_ros import TransformException

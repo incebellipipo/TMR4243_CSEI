@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(template_controller)
+project(template_thrust_allocation)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -22,7 +22,7 @@ install(
 
 install(
   PROGRAMS
-    ${PROJECT_NAME}/controller_node.py
+    ${PROJECT_NAME}/thurst_allocation_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
