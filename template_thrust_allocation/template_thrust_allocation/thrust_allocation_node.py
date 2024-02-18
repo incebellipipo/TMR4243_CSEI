@@ -29,7 +29,7 @@ from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
-from template_thrust_allocation.thurster_configuration_matrix import thrust_configuration_matrix
+from template_thrust_allocation.thruster_configuration_matrix import thrust_configuration_matrix
 from template_thrust_allocation.thruster_allocation import thruster_allocation
 
 class ThrustAllocation(rclpy.node.Node):
