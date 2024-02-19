@@ -21,6 +21,7 @@
 # Copyright (C) 2024 NTNU Marine Cybernetics Laboratory
 
 import rclpy
+import rclpy.node
 import math
 import numpy as np
 
@@ -30,13 +31,13 @@ import geometry_msgs.msg
 import tmr4243_interfaces.msg
 
 
-class Observer(rclpy.Node):
+class Observer(rclpy.node.Node):
     def __init__(self):
         super().__init__('cse_observer')
 
-        self.L1 = self.declare_parameter('L1', 1)
-        self.L2 = self.declare_parameter('L2', 1)
-        self.L3 = self.declare_parameter('L3', 1)
+        self.L1 = self.declare_parameter('L1', 1.0)
+        self.L2 = self.declare_parameter('L2', 1.0)
+        self.L3 = self.declare_parameter('L3', 1.0)
 
         self.subs = {}
         self.pubs = {}
