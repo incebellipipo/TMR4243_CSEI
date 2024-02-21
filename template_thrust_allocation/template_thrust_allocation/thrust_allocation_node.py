@@ -24,12 +24,14 @@ import rclpy
 import rclpy.node
 import tmr4243_interfaces.msg
 import geometry_msgs.msg
+import numpy as np
+import math
 
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
-from template_thrust_allocation.thurster_configuration_matrix import thrust_configuration_matrix
+from template_thrust_allocation.thruster_configuration_matrix import thrust_configuration_matrix
 from template_thrust_allocation.thruster_allocation import thruster_allocation
 
 class ThrustAllocation(rclpy.node.Node):
@@ -43,9 +45,9 @@ class ThrustAllocation(rclpy.node.Node):
         self.subs = {}
 
         self.subs["generalized_forces"] = self.create_subscription(
-             geometry_msgs.msg.Wrench, '/CSEI/generalized_forces', self.recived_forces, 10) 
+             geometry_msgs.msg.Wrench, '/CSEI/generalized_forces', self.recived_forces, 10)
 
-        
+
         self.pubs["tunnel"] = self.create_publisher(
             geometry_msgs.msg.Wrench, '/CSEI/thrusters/tunnel/command', 1)
         self.pubs["port"] = self.create_publisher(
@@ -76,14 +78,13 @@ class ThrustAllocation(rclpy.node.Node):
 
         self.current_controller = self.get_parameter('current_controller')
 
-        
+
         self.get_logger().info(f"Parameter task: {self.current_controller.value}", throttle_duration_sec=1.0)
 
 
     def thrust_allocation_callback(self):
 
         if self.last_recived_forces is not None:
-            u = [u0, u1, u2, a1, a2]
             u = thruster_allocation(self.recived_forces, self.B)
 
             f = geometry_msgs.msg.Wrench()
@@ -91,13 +92,13 @@ class ThrustAllocation(rclpy.node.Node):
             self.pubs['tunnel'].publish(f)
 
             f = geometry_msgs.msg.Wrench()
-            f.force.x = u[1] * math.cos(u[3])
-            f.force.y = u[1] * math.sin(u[3])
+            f.force.x = u[1] * np.cos(u[3])
+            f.force.y = u[1] * np.sin(u[3])
             self.pubs['port'].publish(f)
 
             f = geometry_msgs.msg.Wrench()
-            f.force.x = u[2] * math.cos(u[4])
-            f.force.y = u[2] * math.sin(u[4])
+            f.force.x = u[2] * np.cos(u[4])
+            f.force.y = u[2] * np.sin(u[4])
             self.pubs['starboard'].publish(f)
 
             self.last_recived_forces = None
