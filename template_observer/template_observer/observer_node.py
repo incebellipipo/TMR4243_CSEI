@@ -30,6 +30,9 @@ import sensor_msgs.msg
 import geometry_msgs.msg
 import tmr4243_interfaces.msg
 
+from template_observer.luenberg import luenberg
+from template_observer.wrap     import wrap
+
 
 class Observer(rclpy.node.Node):
     def __init__(self):
@@ -66,6 +69,13 @@ class Observer(rclpy.node.Node):
         self.L2 = self.get_parameter('L2')
         self.L3 = self.get_parameter('L3')
 
+        eta_hat, nu_hat, bias_hat = luenberg(self.last_eta_msg, self.last_tau_msg, self.L1, self.L2, self.L3)
+
+        obs = tmr4243_interfaces.msg.Observer()
+        obs.eta = eta_hat
+        obs.nu = nu_hat
+        obs.bias = bias_hat
+        self.pubs['observer'].publish(obs)
 
 
     def joy_callback(self, msg: sensor_msgs.msg.Joy):
