@@ -118,7 +118,7 @@ class ThrustAllocation(rclpy.node.Node):
             self.pubs['starboard'].publish(f)
 
 
-    def recived_forces(self):
+    def recived_forces(self, msg):
         self.last_recived_forces = msg
 
 
