@@ -1,7 +1,7 @@
 
 import numpy as np
 
-def path(eta_d, eta_ds, v_s, v_ss):
+def path(eta_d, eta_ds):
     
     s = 0
     s_d = 0

@@ -31,6 +31,7 @@ from tf2_ros.transform_listener import TransformListener
 
 from template_controller.PID_controller import PID_controller
 from template_controller.PD_FF_controller import PD_FF_controller
+from template_controller.template_controller.backstepping_controller import backstepping_controller
 
 class Controller(rclpy.node.Node):
     def __init__(self):
@@ -55,6 +56,8 @@ class Controller(rclpy.node.Node):
         self.P_gain = self.declare_parameter("P_gain",0)
         self.I_gain = self.declare_parameter("I_gain",0)
         self.D_gain = self.declare_parameter("D_gain",0)
+        self.K1_gain = self.declare_parameter("K1_gain", 1)
+        self.K2_gain = self.declare_parameter("K2_gain", 1)
 
         #self.current_controller  = self.declare_parameter('current_controller', 'PID_controller')
         self.current_controller  = self.declare_parameter('current_controller', 'PD_FF_controller')
@@ -92,7 +95,9 @@ class Controller(rclpy.node.Node):
             P_gain = self.get_parameter("P_gain").value
             I_gain = self.get_parameter("I_gain").value
             D_gain = self.get_parameter("D_gain").value
-            
+            K1_gain = self.get_parameter("K1_gain").value
+            K2_gain = self.get_parameter("K2_gain").value
+
             tau = []
 
             if "PD_FF_controller" in self.current_controller.value:
@@ -100,6 +105,9 @@ class Controller(rclpy.node.Node):
 
             elif "PID_controller" in self.current_controller.value:
                 tau = PID_controller(self.last_observer, self.reference, P_gain, I_gain, D_gain)
+
+            elif "backstepping_controller" in self.current_controller.value:
+                tau = backstepping_controller(self.last_observer, self.reference, K1_gain, K2_gain)
             
             if len(tau) != 3:
                 self.get_logger().warn(f"tau has length of {len(tau)} but it should be 3", throttle_duration_sec=1.0)

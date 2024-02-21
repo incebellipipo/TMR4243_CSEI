@@ -2,7 +2,7 @@
 
 import numpy as np
 
-def backstepping(observer, reference, K1_gain, K2_gain):
+def backstepping_controller(observer, reference, K1_gain, K2_gain):
 
     # Getting the states from the observer
     eta_hat = observer.eta

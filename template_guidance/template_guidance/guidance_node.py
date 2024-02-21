@@ -29,8 +29,10 @@ from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
-from template_guidance.backstepping import backstepping
+
 from template_guidance.straight_line import straight_line, update_law
+from template_guidance.stationkeeping import stationkeeping
+from template_guidance.path import path
 
 class Guidance(rclpy.node):
     def __init__(self):
@@ -42,22 +44,12 @@ class Guidance(rclpy.node):
         self.pubs = {}
         self.subs = {}
 
-        self.subs["reference"] = self.create_subscription(
-            tmr4243_interfaces.Reference, '/CSEI/control/reference', self.received_reference, 10)
+        self.pubs["reference"] = self.create_publisher(
+            tmr4243_interfaces.Reference, '/CSEI/control/reference', 1)
 
-        self.subs['observer'] = self.create_subscription(
-            tmr4243_interfaces.msg.Observer, '/CSEI/control/observer', self.received_observer ,10)
-
-        self.pubs["generalized_forces"] = self.create_publisher(
-             geometry_msgs.msg.Wrench, '/CSEI/generalized_forces', 1) 
-
-        # Default starting value is set to 0
-        self.K1_gain = self.declare_parameter("K1_gain",1)
-        self.K2_gain = self.declare_parameter("K2_gain",1)
-
-        #self.current_controller  = self.declare_parameter('current_controller', 'PID_controller')
-        self.guidance = self.declare_parameter('guidance', 'backstepping')
-        self.guidance.value
+        self.current_guidance = self.declare_parameter('guidance', 'stationkeeping')
+        self.current_guidance = self.declare_parameter('guidance', 'straight_line')
+        self.current_guidance.value
         
         self.last_transform = None
         timer_period = 0.1 # seconds
@@ -86,44 +78,32 @@ class Guidance(rclpy.node):
 
     def guidance_callback(self):
 
-        if self.last_observer is not None:
+        if "stationkeeping" in self.current_guidance.value:
+            eta_d, eta_ds, eta_ds2 = stationkeeping()
 
-            K1_gain = self.get_parameter("K1_gain").value
-            K2_gain = self.get_parameter("K2_gain").value
-            
-            tau = backstepping(self.last_observer, self.reference, K1_gain, K2_gain)
-            if len(tau) != 3:
-                self.get_logger().warn(f"tau has length of {len(tau)} but it should be 3", throttle_duration_sec=1.0)
-            
-            f = geometry_msgs.msg.Wrench()
-            f.force.x = tau[0]
-            f.force.y = tau[1]
-            f.force.z = 0
-            f.torque.x = 0
-            f.torque.y = 0
-            f.torque.z = tau[2]
-            self.pubs["generalized_forces"].publish(f)
-
-            self.last_observer = None
+            n = tmr4243_interfaces.msg.Reference()
+            n.eta_d = eta_d
+            n.eta_ds = eta_ds
+            n.eta_ds2 = eta_ds2
+            self.pubs["reference"].publish(n)
         
-        else:
+        elif "straight_line" in self.current_guidance.value:
+            eta_d, eta_ds, eta_ds2 = straight_line()
+            w, v_s, v_ss = update_law()
+            n = tmr4243_interfaces.msg.Reference()
+            n.eta_d = eta_d
+            n.eta_ds = eta_ds
+            n.eta_ds2 = eta_ds2
+            self.pubs["reference"].publish(n)
 
-            f = geometry_msgs.msg.Wrench()
-            f.force.x = 0
-            f.force.y = 0
-            f.force.z = 0
-            f.torque.x = 0
-            f.torque.y = 0
-            f.torque.z = 0
-            self.pubs["generalized_forces"].publish(f)
+            v = tmr4243_interfaces.msg.Reference()
+            v.w = w
+            v.v_s = v_s
+            v.v_ss = v_ss
+            self.pubs["reference"].publish(v)
 
 
 
-    def received_reference(self, msg):
-        self.reference = msg
-
-    def received_observer(self, msg):
-        self.last_observer = msg
 
 def main(args=None):
     # Initialize the node
