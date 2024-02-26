@@ -1,4 +1,4 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 #
 # This file is part of CyberShip Enterpries Suite.
 #
@@ -50,7 +50,7 @@ class Controller(rclpy.node.Node):
             tmr4243_interfaces.msg.Observer, '/CSEI/control/observer', self.received_observer ,10)
 
         self.pubs["generalized_forces"] = self.create_publisher(
-             geometry_msgs.msg.Wrench, '/CSEI/generalized_forces', 1) 
+             geometry_msgs.msg.Wrench, '/CSEI/generalized_forces', 1)
 
         # Default starting value is set to 0
         self.P_gain = self.declare_parameter("P_gain",0)
@@ -62,7 +62,7 @@ class Controller(rclpy.node.Node):
         #self.current_controller  = self.declare_parameter('current_controller', 'PID_controller')
         self.current_controller  = self.declare_parameter('current_controller', 'PD_FF_controller')
         self.current_controller.value
-        
+
         self.last_transform = None
         timer_period = 0.1 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -84,10 +84,10 @@ class Controller(rclpy.node.Node):
 
         self.current_controller = self.get_parameter('current_controller')
 
-        
+
         self.get_logger().info(f"Parameter task: {self.current_controller.value}", throttle_duration_sec=1.0)
 
-    
+
     def controller_callback(self):
 
         if self.last_observer is not None:
@@ -108,10 +108,10 @@ class Controller(rclpy.node.Node):
 
             elif "backstepping_controller" in self.current_controller.value:
                 tau = backstepping_controller(self.last_observer, self.reference, K1_gain, K2_gain)
-            
+
             if len(tau) != 3:
                 self.get_logger().warn(f"tau has length of {len(tau)} but it should be 3", throttle_duration_sec=1.0)
-            
+
             f = geometry_msgs.msg.Wrench()
             f.force.x = tau[0]
             f.force.y = tau[1]
@@ -122,7 +122,7 @@ class Controller(rclpy.node.Node):
             self.pubs["generalized_forces"].publish(f)
 
             self.last_observer = None
-        
+
         else:
 
             f = geometry_msgs.msg.Wrench()

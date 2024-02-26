@@ -1,4 +1,4 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 
 import numpy as np
 
@@ -12,7 +12,7 @@ def straight_line():
 
     return eta_d, eta_ds, eta_ds2
 
-    
+
 def update_law():
 
     w     = 0

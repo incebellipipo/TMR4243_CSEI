@@ -1,4 +1,4 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 #
 # This file is part of CyberShip Enterpries Suite.
 #
@@ -50,7 +50,7 @@ class Guidance(rclpy.node):
         self.current_guidance = self.declare_parameter('guidance', 'stationkeeping')
         self.current_guidance = self.declare_parameter('guidance', 'straight_line')
         self.current_guidance.value
-        
+
         self.last_transform = None
         timer_period = 0.1 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
@@ -72,9 +72,9 @@ class Guidance(rclpy.node):
 
         self.guidance = self.get_parameter('guidance')
 
-        
+
         self.get_logger().info(f"Parameter task: {self.guidance.value}", throttle_duration_sec=1.0)
-        
+
 
     def guidance_callback(self):
 
@@ -86,7 +86,7 @@ class Guidance(rclpy.node):
             n.eta_ds = eta_ds
             n.eta_ds2 = eta_ds2
             self.pubs["reference"].publish(n)
-        
+
         elif "straight_line" in self.current_guidance.value:
             eta_d, eta_ds, eta_ds2 = straight_line()
             w, v_s, v_ss = update_law()
