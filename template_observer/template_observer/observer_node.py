@@ -38,9 +38,9 @@ class Observer(rclpy.node.Node):
     def __init__(self):
         super().__init__('cse_observer')
 
-        self.L1 = self.declare_parameter('L1', 1.0)
-        self.L2 = self.declare_parameter('L2', 1.0)
-        self.L3 = self.declare_parameter('L3', 1.0)
+        self.L1 = self.declare_parameter('L1', [1.0] * 3)
+        self.L2 = self.declare_parameter('L2', [1.0] * 3)
+        self.L3 = self.declare_parameter('L3', [1.0] * 3)
 
         self.subs = {}
         self.pubs = {}
@@ -61,6 +61,8 @@ class Observer(rclpy.node.Node):
         self.last_transform = None
         self.last_joystick_msg = None
         self.last_eta_msg = None
+        self.last_tau_msg = None
+
 
         self.observer_runner = self.create_timer(0.1, self.observer_loop)
 
@@ -68,6 +70,11 @@ class Observer(rclpy.node.Node):
         self.L1 = self.get_parameter('L1')
         self.L2 = self.get_parameter('L2')
         self.L3 = self.get_parameter('L3')
+
+        if \
+            self.last_eta_msg is None or \
+            self.last_tau_msg is None:
+            return
 
         eta_hat, nu_hat, bias_hat = luenberg(self.last_eta_msg, self.last_tau_msg, self.L1, self.L2, self.L3)
 

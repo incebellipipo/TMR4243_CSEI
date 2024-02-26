@@ -1,0 +1,6 @@
+guidance_node:
+  ros__parameters:
+    L1: [1, 1, 1]
+    L2: [1, 1, 1]
+    L3: [1, 1, 1]
+
