@@ -55,7 +55,7 @@ class Observer(rclpy.node.Node):
             std_msgs.msg.Float32MultiArray, '/CSEI/control/eta', self.eta_callback, 10
         )
         self.pubs['observer'] = self.create_publisher(
-            tmr4243_interfaces.msg.Observer, '/CSEI/control/observer', 1
+            tmr4243_interfaces.msg.Observer, '/CSEI/observer/state', 1
         )
 
         self.last_transform = None
