@@ -117,9 +117,9 @@ class JoystickForce(rclpy.node.Node):
         self.pubs['starboard'].publish(f)
 
         tau = std_msgs.msg.Float32MultiArray()
-        tau.data = list(msg.axes[template_joystick_control.joystick_mapping.LEFT_STICK_VERTICAL],
+        tau.data = [msg.axes[template_joystick_control.joystick_mapping.LEFT_STICK_VERTICAL],
                         msg.axes[template_joystick_control.joystick_mapping.LEFT_STICK_HORIZONTAL],
-                        msg.axes[template_joystick_control.joystick_mapping.RIGHT_STICK_VERTICAL])
+                        msg.axes[template_joystick_control.joystick_mapping.RIGHT_STICK_VERTICAL]]
 
         self.pubs['tau'].publish(tau)
 
