@@ -2,18 +2,19 @@
 
 import numpy as np
 import geometry_msgs.msg
+import std_msgs.msg
 
-def thruster_allocation(generalized_forces: geometry_msgs.msg.Wrench, thrust_configuration_matrix: np.ndarray):
-   tau = np.array([generalized_forces.force.x, generalized_forces.force.y, generalized_forces.torque.z])
+import typing
 
-   B = thrust_configuration_matrix
 
+def thruster_allocation(tau: np.ndarray, allocation_matrix: np.ndarray):
    # u = [u0, u1, u2, a1, a2]
    # Replace the following line
-   u = np.array([0, 0, 0, 0, 0, 0])
+   u = np.zeros(5)
 
    #
    ## Write your code below
    #
+
 
    return u

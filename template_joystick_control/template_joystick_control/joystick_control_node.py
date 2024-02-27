@@ -55,8 +55,6 @@ class JoystickForce(rclpy.node.Node):
         self.pubs["u_cmd"] = self.create_publisher(
             std_msgs.msg.Float32MultiArray, '/CSEI/control/u_cmd', 10)
 
-        self.joystick_name = self.declare_parameter('joystick_name', 'PS4')
-
         self.current_task = self.declare_parameter('task', 'simple')
         self.current_task.value
 
