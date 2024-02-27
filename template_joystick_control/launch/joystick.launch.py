@@ -18,7 +18,8 @@ def generate_launch_description():
         name='joystick_control',
         parameters=[
                 {'task': launch.substitutions.LaunchConfiguration('task')},
-        ]
+        ],
+        output='screen'
     )
     node_joy = launch_ros.actions.Node(
         package='joy',

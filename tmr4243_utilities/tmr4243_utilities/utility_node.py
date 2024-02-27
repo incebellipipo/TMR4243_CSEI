@@ -52,13 +52,13 @@ class UtilityNode(rclpy.node.Node):
         self.pubs["starboard"] = self.create_publisher(
             geometry_msgs.msg.Wrench, '/CSEI/thrusters/starboard/command', 1)
         self.pubs["eta"] = self.create_publisher(
-            std_msgs.msg.Float32MultiArray, '/CSEI/control/eta', 1
+            std_msgs.msg.Float32MultiArray, '/CSEI/state/eta', 1
         )
         self.pubs["tau"] = self.create_publisher(
-            std_msgs.msg.Float32MultiArray, '/CSEI/control/tau', 1)
+            std_msgs.msg.Float32MultiArray, '/CSEI/state/tau', 1)
 
         self.subs["allocated"] = self.create_subscription(
-            geometry_msgs.msg.Wrench, '/CSEI/allocated', self.tau_callback, 10)
+            geometry_msgs.msg.Wrench, '/CSEI/allocated', self.allocated_callback, 10)
 
 
         self.subs["joy"] = self.create_subscription(
@@ -75,6 +75,8 @@ class UtilityNode(rclpy.node.Node):
         self.last_transform = None
         self.eta_publisher = self.create_timer(0.1, self.eta_publisher)
 
+        self.tau = [0, 0, 0]
+        self.tau_publisher = self.create_timer(0.1, self.tau_publisher)
 
     def eta_publisher(self):
 
@@ -154,7 +156,14 @@ class UtilityNode(rclpy.node.Node):
     def joy_callback(self, msg: sensor_msgs.msg.Joy):
         pass
 
-    def tau_callback(self, msg: geometry_msgs.msg.Wrench):
+    def tau_publisher(self):
+        msg = std_msgs.msg.Float32MultiArray()
+
+        msg.data = [self.tau[0], -self.tau[1], -self.tau[2]]
+        self.pubs['tau'].publish(msg)
+
+
+    def allocated_callback(self, msg: geometry_msgs.msg.Wrench):
         tau = [None] * 3
 
         tau[0] = msg.force.x

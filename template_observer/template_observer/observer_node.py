@@ -31,7 +31,7 @@ import geometry_msgs.msg
 import tmr4243_interfaces.msg
 
 from template_observer.luenberg import luenberg
-from template_observer.wrap     import wrap
+from template_observer.wrap import wrap
 
 
 class Observer(rclpy.node.Node):
@@ -49,10 +49,10 @@ class Observer(rclpy.node.Node):
             sensor_msgs.msg.Joy, '/joy', self.joy_callback, 10
         )
         self.subs["tau"] = self.create_subscription(
-            geometry_msgs.msg.Wrench, '/CSEI/control/tau', self.tau_callback, 10
+            std_msgs.msg.Float32MultiArray, '/CSEI/state/tau', self.tau_callback, 10
         )
         self.subs["eta"] = self.create_subscription(
-            std_msgs.msg.Float32MultiArray, '/CSEI/control/eta', self.eta_callback, 10
+            std_msgs.msg.Float32MultiArray, '/CSEI/state/eta', self.eta_callback, 10
         )
         self.pubs['observer'] = self.create_publisher(
             tmr4243_interfaces.msg.Observer, '/CSEI/observer/state', 1
@@ -63,7 +63,6 @@ class Observer(rclpy.node.Node):
         self.last_eta_msg = None
         self.last_tau_msg = None
 
-
         self.observer_runner = self.create_timer(0.1, self.observer_loop)
 
     def observer_loop(self):
@@ -72,18 +71,18 @@ class Observer(rclpy.node.Node):
         self.L3 = self.get_parameter('L3')
 
         if \
-            self.last_eta_msg is None or \
-            self.last_tau_msg is None:
+                self.last_eta_msg is None or \
+                self.last_tau_msg is None:
             return
 
-        eta_hat, nu_hat, bias_hat = luenberg(self.last_eta_msg, self.last_tau_msg, self.L1, self.L2, self.L3)
+        eta_hat, nu_hat, bias_hat = luenberg(
+            self.last_eta_msg.data, self.last_tau_msg.data, self.L1.value, self.L2.value, self.L3.value)
 
         obs = tmr4243_interfaces.msg.Observer()
         obs.eta = eta_hat
         obs.nu = nu_hat
         obs.bias = bias_hat
         self.pubs['observer'].publish(obs)
-
 
     def joy_callback(self, msg: sensor_msgs.msg.Joy):
         self.last_joystick_msg = msg
@@ -93,6 +92,7 @@ class Observer(rclpy.node.Node):
 
     def eta_callback(self, msg: std_msgs.msg.Float32MultiArray):
         self.last_eta_msg = msg
+
 
 def main():
     rclpy.init()

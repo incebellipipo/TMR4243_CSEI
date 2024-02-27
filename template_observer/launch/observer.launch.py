@@ -18,7 +18,8 @@ def generate_launch_description():
         package='template_observer',
         executable='observer_node.py',
         name='observer',
-        parameters=[config]
+        parameters=[config],
+        output='screen'
     )
 
     return launch.LaunchDescription([

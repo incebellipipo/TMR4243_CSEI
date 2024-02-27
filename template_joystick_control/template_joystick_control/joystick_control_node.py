@@ -49,17 +49,11 @@ class JoystickForce(rclpy.node.Node):
         self.pubs = {}
         self.subs = {}
 
-        self.pubs["tunnel"] = self.create_publisher(
-            geometry_msgs.msg.Wrench, '/CSEI/thrusters/tunnel/command', 1)
-        self.pubs["port"] = self.create_publisher(
-            geometry_msgs.msg.Wrench, '/CSEI/thrusters/port/command', 1)
-        self.pubs["starboard"] = self.create_publisher(
-            geometry_msgs.msg.Wrench, '/CSEI/thrusters/starboard/command', 1)
-        self.pubs["tau"] = self.create_publisher(
-            std_msgs.msg.Float32MultiArray, '/CSEI/control/tau', 1)
-
         self.subs["joy"] = self.create_subscription(
             sensor_msgs.msg.Joy, '/joy', self.joy_callback, 10)
+
+        self.pubs["u_cmd"] = self.create_publisher(
+            std_msgs.msg.Float32MultiArray, '/CSEI/control/u_cmd', 10)
 
         self.joystick_name = self.declare_parameter('joystick_name', 'PS4')
 
@@ -102,26 +96,9 @@ class JoystickForce(rclpy.node.Node):
 
         [u0, u1, u2, a1, a2] = result
 
-        f = geometry_msgs.msg.Wrench()
-        f.force.x = u0
-        self.pubs['tunnel'].publish(f)
-
-        f = geometry_msgs.msg.Wrench()
-        f.force.x = u1 * math.cos(a1)
-        f.force.y = u1 * math.sin(a1)
-        self.pubs['port'].publish(f)
-
-        f = geometry_msgs.msg.Wrench()
-        f.force.x = u2 * math.cos(a2)
-        f.force.y = u2 * math.sin(a2)
-        self.pubs['starboard'].publish(f)
-
-        tau = std_msgs.msg.Float32MultiArray()
-        tau.data = [msg.axes[template_joystick_control.joystick_mapping.LEFT_STICK_VERTICAL],
-                        msg.axes[template_joystick_control.joystick_mapping.LEFT_STICK_HORIZONTAL],
-                        msg.axes[template_joystick_control.joystick_mapping.RIGHT_STICK_VERTICAL]]
-
-        self.pubs['tau'].publish(tau)
+        u_cmd = std_msgs.msg.Float32MultiArray()
+        u_cmd.data = result
+        self.pubs["u_cmd"].publish(u_cmd)
 
 
 def main(args=None):
