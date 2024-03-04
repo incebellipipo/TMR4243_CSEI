@@ -75,7 +75,7 @@ class UtilityNode(rclpy.node.Node):
         self.last_transform = None
         self.eta_publisher = self.create_timer(0.1, self.eta_publisher)
 
-        self.tau = [0, 0, 0]
+        self.tau = np.zeros((3), dtype=float)
         self.tau_publisher = self.create_timer(0.1, self.tau_publisher)
 
     def eta_publisher(self):
