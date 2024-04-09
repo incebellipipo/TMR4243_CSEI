@@ -31,7 +31,7 @@ from tf2_ros.transform_listener import TransformListener
 
 from template_controller.PID_controller import PID_controller
 from template_controller.PD_FF_controller import PD_FF_controller
-from template_controller.template_controller.backstepping_controller import backstepping_controller
+from template_controller.backstepping_controller import backstepping_controller
 
 class Controller(rclpy.node.Node):
     def __init__(self):
@@ -63,6 +63,7 @@ class Controller(rclpy.node.Node):
         self.current_controller  = self.declare_parameter('current_controller', 'PD_FF_controller')
         self.current_controller.value
 
+        self.last_observer = None
         self.last_transform = None
         timer_period = 0.1 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
