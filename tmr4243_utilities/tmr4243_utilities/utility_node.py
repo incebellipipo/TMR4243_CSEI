@@ -58,7 +58,7 @@ class UtilityNode(rclpy.node.Node):
             std_msgs.msg.Float32MultiArray, '/CSEI/state/tau', 1)
 
         self.subs["allocated"] = self.create_subscription(
-            geometry_msgs.msg.Wrench, '/CSEI/allocated', self.allocated_callback, 10)
+            geometry_msgs.msg.WrenchStamped, '/CSEI/allocated', self.allocated_callback, 10)
 
 
         self.subs["joy"] = self.create_subscription(
@@ -163,12 +163,12 @@ class UtilityNode(rclpy.node.Node):
         self.pubs['tau'].publish(msg)
 
 
-    def allocated_callback(self, msg: geometry_msgs.msg.Wrench):
+    def allocated_callback(self, msg: geometry_msgs.msg.WrenchStamped):
         tau = [None] * 3
 
-        tau[0] = msg.force.x
-        tau[1] = msg.force.y
-        tau[2] = msg.torque.z
+        tau[0] = msg.wrench.force.x
+        tau[1] = msg.wrench.force.y
+        tau[2] = msg.wrench.torque.z
 
         msg = std_msgs.msg.Float32MultiArray()
         msg.data = tau
