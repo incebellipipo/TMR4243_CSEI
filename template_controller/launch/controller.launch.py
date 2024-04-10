@@ -1,5 +1,9 @@
+#!/usr/bin/env python3
+
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from tmr4243_utilities.utilities import anon
+
 
 def generate_launch_description():
 
@@ -7,6 +11,6 @@ def generate_launch_description():
         Node(
             package='template_controller',
             executable='controller_node.py',
-            name='controller'
+            name=f'{anon()}controller'
         ),
     ])

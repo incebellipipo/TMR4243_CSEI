@@ -22,14 +22,11 @@
 
 import rclpy
 import rclpy.node
+import std_msgs.msg
 import tmr4243_interfaces.msg
 import geometry_msgs.msg
 import numpy as np
 import math
-
-from tf2_ros import TransformException
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
 
 
 from template_thrust_allocation.thrust_allocation_matrix import thrust_configuration_matrix
@@ -38,20 +35,14 @@ from template_thrust_allocation.thruster_allocation import thruster_allocation
 
 class ThrustAllocation(rclpy.node.Node):
     def __init__(self):
-        super().__init__("cse_thrust_allocation")
+        super().__init__("tmr4243_thrust_allocation_node")
 
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
 
         self.pubs = {}
         self.subs = {}
 
-        self.pubs["tunnel"] = self.create_publisher(
-            geometry_msgs.msg.Wrench, '/CSEI/thrusters/tunnel/command', 1)
-        self.pubs["port"] = self.create_publisher(
-            geometry_msgs.msg.Wrench, '/CSEI/thrusters/port/command', 1)
-        self.pubs["starboard"] = self.create_publisher(
-            geometry_msgs.msg.Wrench, '/CSEI/thrusters/starboard/command', 1)
+        self.pubs["u_cmd"] = self.create_publisher(
+            std_msgs.msg.Float32MultiArray, '/CSEI/control/u_cmd', 1)
 
         self.B = thrust_configuration_matrix()
 
@@ -64,15 +55,6 @@ class ThrustAllocation(rclpy.node.Node):
 
 
     def timer_callback(self):
-
-        try:
-            self.last_transform = self.tf_buffer.lookup_transform(
-                "base_link",
-                "world",
-                rclpy.time.Time())
-        except TransformException as ex:
-            self.get_logger().info(
-                f'Could not transform : {ex}')
 
         self.current_controller = self.get_parameter('current_controller')
 

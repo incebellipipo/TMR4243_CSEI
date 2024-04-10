@@ -22,36 +22,45 @@
 
 import rclpy
 import rclpy.node
+import rcl_interfaces.msg
 import tmr4243_interfaces.msg
-import geometry_msgs.msg
-
-from tf2_ros import TransformException
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
-
 
 from template_guidance.straight_line import straight_line, update_law
 from template_guidance.stationkeeping import stationkeeping
 from template_guidance.path import path
 
-class Guidance(rclpy.node):
-    def __init__(self):
-        super().__init__("cse_thrust_allocation")
 
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
+
+class Guidance(rclpy.node.Node):
+    TASK_STATIONKEEPING = 'stationkeeping'
+    TASK_STRAIGHT_LINE = 'straight_line'
+    TASKS = [TASK_STRAIGHT_LINE, TASK_STATIONKEEPING]
+
+    def __init__(self):
+        super().__init__("tmr4243_guidance")
 
         self.pubs = {}
         self.subs = {}
 
         self.pubs["reference"] = self.create_publisher(
-            tmr4243_interfaces.Reference, '/CSEI/control/reference', 1)
+            tmr4243_interfaces.msg.Reference, '/CSEI/control/reference', 1)
 
-        self.current_guidance = self.declare_parameter('guidance', 'stationkeeping')
-        self.current_guidance = self.declare_parameter('guidance', 'straight_line')
-        self.current_guidance.value
+        self.subs["observer"] = self.create_subscription(
+            tmr4243_interfaces.msg.Observer, '/CSEI/control/observer', self.observer_callback, 10)
 
-        self.last_transform = None
+        self.last_observation = None
+
+        self.task = Guidance.TASK_STATIONKEEPING
+        self.declare_parameter(
+            'task',
+            self.task,
+            rcl_interfaces.msg.ParameterDescriptor(
+                description="Task",
+                type=rcl_interfaces.msg.ParameterType.PARAMETER_STRING,
+                read_only=False,
+                additional_constraints=f"Allowed values: {' '.join(Guidance.TASKS)}"
+            )
+        )
         timer_period = 0.1 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
@@ -61,48 +70,39 @@ class Guidance(rclpy.node):
 
     def timer_callback(self):
 
-        try:
-            self.last_transform = self.tf_buffer.lookup_transform(
-                "base_link",
-                "world",
-                rclpy.time.Time())
-        except TransformException as ex:
-            self.get_logger().info(
-                f'Could not transform : {ex}')
-
-        self.guidance = self.get_parameter('guidance')
+        self.task = self.get_parameter('task').get_parameter_value().string_value
 
 
-        self.get_logger().info(f"Parameter task: {self.guidance.value}", throttle_duration_sec=1.0)
+        self.get_logger().info(f"Parameter task: {self.task}", throttle_duration_sec=1.0)
 
 
     def guidance_callback(self):
 
-        if "stationkeeping" in self.current_guidance.value:
+        if Guidance.TASK_STATIONKEEPING in self.task:
             eta_d, eta_ds, eta_ds2 = stationkeeping()
 
             n = tmr4243_interfaces.msg.Reference()
-            n.eta_d = eta_d
-            n.eta_ds = eta_ds
-            n.eta_ds2 = eta_ds2
+            n.eta_d = list(eta_d)
+            n.eta_ds = list(eta_ds)
+            n.eta_ds2 = list(eta_ds2)
             self.pubs["reference"].publish(n)
 
-        elif "straight_line" in self.current_guidance.value:
+        elif Guidance.TASK_STRAIGHT_LINE in self.task:
             eta_d, eta_ds, eta_ds2 = straight_line()
             w, v_s, v_ss = update_law()
+
             n = tmr4243_interfaces.msg.Reference()
-            n.eta_d = eta_d
-            n.eta_ds = eta_ds
-            n.eta_ds2 = eta_ds2
+            n.eta_d = list(eta_d)
+            n.eta_ds = list(eta_ds)
+            n.eta_ds2 = list(eta_ds2)
+            n.w = w
+            n.v_s = v_s
+            n.v_ss = v_ss
             self.pubs["reference"].publish(n)
 
-            v = tmr4243_interfaces.msg.Reference()
-            v.w = w
-            v.v_s = v_s
-            v.v_ss = v_ss
-            self.pubs["reference"].publish(v)
+    def observer_callback(self, msg):
 
-
+        self.last_observation = msg
 
 
 def main(args=None):

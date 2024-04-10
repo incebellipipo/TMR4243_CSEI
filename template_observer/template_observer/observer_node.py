@@ -32,6 +32,10 @@ from template_observer.wrap import wrap
 
 
 class Observer(rclpy.node.Node):
+    TASK_DEADRECKONING = 'deadreckoning'
+    TASK_LUENBERG = 'luenberg'
+    TASK_LIST = [TASK_DEADRECKONING, TASK_LUENBERG]
+
     def __init__(self):
         super().__init__('cse_observer')
 
