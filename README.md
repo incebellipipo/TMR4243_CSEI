@@ -43,7 +43,7 @@ The package is updated with `git` command.
 
 ![Initial command](docs/quickstart.gif)
 ```bash
-ros2 launch tmr4243_utilities utilities.launch.xml
+ros2 launch tmr4243_utilities utilities.simulation.launch.py
 ```
 
 See the simulation
