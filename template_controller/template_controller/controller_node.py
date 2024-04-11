@@ -1,4 +1,4 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 #
 # This file is part of CyberShip Enterpries Suite.
 #
@@ -22,45 +22,102 @@
 
 import rclpy
 import rclpy.node
+import rcl_interfaces.msg
 import tmr4243_interfaces.msg
 import geometry_msgs.msg
 
-from tf2_ros import TransformException
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
-
 from template_controller.PID_controller import PID_controller
 from template_controller.PD_FF_controller import PD_FF_controller
+from template_controller.backstepping_controller import backstepping_controller
 
 class Controller(rclpy.node.Node):
-    def __init__(self):
-        super().__init__("cse_controller")
+    TASK_PD_FF_CONTROLLER = 'PD_FF_controller'
+    TASK_PID_CONTROLLER = 'PID_controller'
+    TASK_BACKSTEPPING_CONTROLLER = 'backstepping_controller'
+    TASKS = [TASK_PD_FF_CONTROLLER, TASK_PID_CONTROLLER, TASK_BACKSTEPPING_CONTROLLER]
 
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
+    def __init__(self):
+        super().__init__("tmr4243_controller")
 
         self.pubs = {}
         self.subs = {}
 
         self.subs["reference"] = self.create_subscription(
-            tmr4243_interfaces.Reference, '/CSEI/control/reference', self.received_reference, 10)
+            tmr4243_interfaces.msg.Reference, '/CSEI/control/reference', self.received_reference, 10)
 
         self.subs['observer'] = self.create_subscription(
             tmr4243_interfaces.msg.Observer, '/CSEI/control/observer', self.received_observer ,10)
 
         self.pubs["generalized_forces"] = self.create_publisher(
-             geometry_msgs.msg.Wrench, '/CSEI/generalized_forces', 1) 
+             geometry_msgs.msg.Wrench, '/CSEI/generalized_forces', 1)
 
-        # Default starting value is set to 0
-        self.P_gain = self.declare_parameter("P_gain",0)
-        self.I_gain = self.declare_parameter("I_gain",0)
-        self.D_gain = self.declare_parameter("D_gain",0)
+        self.p_gain = 1.0
+        self.declare_parameter(
+            "p_gain",
+            self.p_gain,
+            rcl_interfaces.msg.ParameterDescriptor(
+                description="Proportional gain",
+                type=rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE,
+                read_only=False
+            )
+        )
+        self.i_gain = 0.0
+        self.declare_parameter(
+            "i_gain",
+            self.i_gain,
+            rcl_interfaces.msg.ParameterDescriptor(
+                description="Integral gain",
+                type=rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE,
+                read_only=False
+            )
+        )
+        self.d_gain = 0.0
+        self.declare_parameter(
+            "d_gain",
+            self.d_gain,
+            rcl_interfaces.msg.ParameterDescriptor(
+                description="Derivative gain",
+                type=rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE,
+                read_only=False
+            )
+        )
+        self.k1_gain = 1.0
+        self.declare_parameter(
+            "k1_gain",
+            self.k1_gain,
+            rcl_interfaces.msg.ParameterDescriptor(
+                description="K1 gain",
+                type=rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE,
+                read_only=False
+            )
+        )
+        self.k2_gain = 1.0
+        self.declare_parameter(
+            "k2_gain",
+            1.0,
+            rcl_interfaces.msg.ParameterDescriptor(
+                description="K2 gain",
+                type=rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE,
+                read_only=False
+            )
+        )
 
-        #self.current_controller  = self.declare_parameter('current_controller', 'PID_controller')
-        self.current_controller  = self.declare_parameter('current_controller', 'PD_FF_controller')
+        self.task  = Controller.TASK_PD_FF_CONTROLLER
+        self.declare_parameter(
+            'task',
+            self.control_task,
+            rcl_interfaces.msg.ParameterDescriptor(
+                description="Task",
+                type=rcl_interfaces.msg.ParameterType.PARAMETER_STRING,
+                read_only=False,
+                additional_constraints=f"Allowed values: {' '.join(Controller.TASKS)}"
+            )
+        )
         self.current_controller.value
-        
-        self.last_transform = None
+
+        self.last_reference = None
+        self.last_observation = None
+
         timer_period = 0.1 # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
@@ -70,69 +127,61 @@ class Controller(rclpy.node.Node):
 
     def timer_callback(self):
 
-        try:
-            self.last_transform = self.tf_buffer.lookup_transform(
-                "base_link",
-                "world",
-                rclpy.time.Time())
-        except TransformException as ex:
-            self.get_logger().info(
-                f'Could not transform : {ex}')
+        self.task = self.get_parameter('task').get_parameter_value().string_value
+        self.p_gain = self.get_parameter("p_gain").get_parameter_value().double_value
+        self.i_gain = self.get_parameter("i_gain").get_parameter_value().double_value
+        self.d_gain = self.get_parameter("d_gain").get_parameter_value().double_value
+        self.k1_gain = self.get_parameter("k1_gain").get_parameter_value().double_value
+        self.k2_gain = self.get_parameter("k2_gain").get_parameter_value().double_value
 
-        self.current_controller = self.get_parameter('current_controller')
+        self.get_logger().info(f"Parameter task: {self.control_task}", throttle_duration_sec=1.0)
 
-        
-        self.get_logger().info(f"Parameter task: {self.current_controller.value}", throttle_duration_sec=1.0)
 
-    
     def controller_callback(self):
 
-        if self.last_observer is not None:
+        if self.last_observation == None:
+            return
 
-            P_gain = self.get_parameter("P_gain").value
-            I_gain = self.get_parameter("I_gain").value
-            D_gain = self.get_parameter("D_gain").value
-            
-            tau = []
-
-            if "PD_FF_controller" in self.current_controller.value:
-                tau = PD_FF_controller(self.last_observer, self.reference, P_gain, D_gain)
-
-            elif "PID_controller" in self.current_controller.value:
-                tau = PID_controller(self.last_observer, self.reference, P_gain, I_gain, D_gain)
-            
-            if len(tau) != 3:
-                self.get_logger().warn(f"tau has length of {len(tau)} but it should be 3", throttle_duration_sec=1.0)
-            
-            f = geometry_msgs.msg.Wrench()
-            f.force.x = tau[0]
-            f.force.y = tau[1]
-            f.force.z = 0
-            f.torque.x = 0
-            f.torque.y = 0
-            f.torque.z = tau[2]
-            self.pubs["generalized_forces"].publish(f)
-
-            self.last_observer = None
-        
+        if Controller.TASK_PD_FF_CONTROLLER in self.task:
+            tau = PD_FF_controller(
+                self.last_observation,
+                self.last_reference,
+                self.p_gain,
+                self.d_gain
+            )
+        elif Controller.TASK_PID_CONTROLLER  in self.task:
+            tau = PID_controller(
+                self.last_observation,
+                self.last_reference,
+                self.p_gain,
+                self.i_gain,
+                self.d_gain
+            )
+        elif Controller.TASK_BACKSTEPPING_CONTROLLER in self.task:
+            tau = backstepping_controller(
+                self.last_observation,
+                self.last_reference,
+                self.k1_gain,
+                self.k2_gain
+            )
         else:
+            tau = [0.0, 0.0, 0.0]
 
-            f = geometry_msgs.msg.Wrench()
-            f.force.x = 0
-            f.force.y = 0
-            f.force.z = 0
-            f.torque.x = 0
-            f.torque.y = 0
-            f.torque.z = 0
-            self.pubs["generalized_forces"].publish(f)
+        if len(tau) != 3:
+            self.get_logger().warn(f"tau has length of {len(tau)} but it should be 3: tau := [Fx, Fy, Mz]", throttle_duration_sec=1.0)
+            return
 
-
+        f = geometry_msgs.msg.Wrench()
+        f.force.x = tau[0]
+        f.force.y = tau[1]
+        f.torque.z = tau[2]
+        self.pubs["generalized_forces"].publish(f)
 
     def received_reference(self, msg):
-        self.reference = msg
+        self.last_reference = msg
 
     def received_observer(self, msg):
-        self.last_observer = msg
+        self.last_observation = msg
 
 
 def main(args=None):

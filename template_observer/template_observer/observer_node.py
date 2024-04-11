@@ -21,42 +21,45 @@
 # Copyright (C) 2024 NTNU Marine Cybernetics Laboratory
 
 import rclpy
-import math
+import rclpy.node
 import numpy as np
 
 import std_msgs.msg
-import sensor_msgs.msg
-import geometry_msgs.msg
 import tmr4243_interfaces.msg
 
+from template_observer.luenberg import luenberg
+from template_observer.wrap import wrap
 
-class Observer(rclpy.Node):
+
+class Observer(rclpy.node.Node):
+    TASK_DEADRECKONING = 'deadreckoning'
+    TASK_LUENBERG = 'luenberg'
+    TASK_LIST = [TASK_DEADRECKONING, TASK_LUENBERG]
+
     def __init__(self):
         super().__init__('cse_observer')
 
-        self.L1 = self.declare_parameter('L1', 1)
-        self.L2 = self.declare_parameter('L2', 1)
-        self.L3 = self.declare_parameter('L3', 1)
+        self.L1 = self.declare_parameter('L1', [1.0] * 3)
+        self.L2 = self.declare_parameter('L2', [1.0] * 3)
+        self.L3 = self.declare_parameter('L3', [1.0] * 3)
 
         self.subs = {}
         self.pubs = {}
 
-        self.subs["joy"] = self.create_subscription(
-            sensor_msgs.msg.Joy, '/joy', self.joy_callback, 10
-        )
         self.subs["tau"] = self.create_subscription(
-            geometry_msgs.msg.Wrench, '/CSEI/control/tau', self.tau_callback, 10
+            std_msgs.msg.Float32MultiArray, '/CSEI/state/tau', self.tau_callback, 10
         )
         self.subs["eta"] = self.create_subscription(
-            std_msgs.msg.Float32MultiArray, '/CSEI/control/eta', self.eta_callback, 10
+            std_msgs.msg.Float32MultiArray, '/CSEI/state/eta', self.eta_callback, 10
         )
         self.pubs['observer'] = self.create_publisher(
-            tmr4243_interfaces.msg.Observer, '/CSEI/control/observer', 1
+            tmr4243_interfaces.msg.Observer, '/CSEI/observer/state', 1
         )
 
         self.last_transform = None
         self.last_joystick_msg = None
         self.last_eta_msg = None
+        self.last_tau_msg = None
 
         self.observer_runner = self.create_timer(0.1, self.observer_loop)
 
@@ -65,16 +68,31 @@ class Observer(rclpy.Node):
         self.L2 = self.get_parameter('L2')
         self.L3 = self.get_parameter('L3')
 
+        if \
+                self.last_eta_msg is None or \
+                self.last_tau_msg is None:
+            return
 
+        eta_hat, nu_hat, bias_hat = luenberg(
+            self.last_eta_msg.data,
+            self.last_tau_msg.data,
+            self.L1.value,
+            self.L2.value,
+            self.L3.value
+        )
 
-    def joy_callback(self, msg: sensor_msgs.msg.Joy):
-        self.last_joystick_msg = msg
+        obs = tmr4243_interfaces.msg.Observer()
+        obs.eta = eta_hat
+        obs.nu = nu_hat
+        obs.bias = bias_hat
+        self.pubs['observer'].publish(obs)
 
     def tau_callback(self, msg: std_msgs.msg.Float32MultiArray):
         self.last_tau_msg = msg
 
     def eta_callback(self, msg: std_msgs.msg.Float32MultiArray):
         self.last_eta_msg = msg
+
 
 def main():
     rclpy.init()

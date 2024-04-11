@@ -16,7 +16,7 @@
 # CyberShip Enterpries Suite. If not, see <https://www.gnu.org/licenses/>.
 #
 # Maintainer: Emir Cem Gezer
-# Email: emir.cem.gezer@ntnu.no, emircem.gezer@gmail.com, me@emircem
+# Email: emir.cem.gezer@ntnu.no, emircem.gezer@gmail.com, me@emircem.com
 # Year: 2024
 # Copyright (C) 2024 NTNU Marine Cybernetics Laboratory
 
@@ -34,6 +34,7 @@ from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
+from pyquaternion import Quaternion as quat
 
 class UtilityNode(rclpy.node.Node):
     def __init__(self):
@@ -52,55 +53,47 @@ class UtilityNode(rclpy.node.Node):
         self.pubs["starboard"] = self.create_publisher(
             geometry_msgs.msg.Wrench, '/CSEI/thrusters/starboard/command', 1)
         self.pubs["eta"] = self.create_publisher(
-            std_msgs.msg.Float32MultiArray, '/CSEI/control/eta', 1
-        )
+            std_msgs.msg.Float32MultiArray, '/CSEI/state/eta', 1)
         self.pubs["tau"] = self.create_publisher(
-            std_msgs.msg.Float32MultiArray, '/CSEI/control/tau', 1)
-
-        self.subs["allocated"] = self.create_subscription(
-            geometry_msgs.msg.Wrench, '/CSEI/allocated', self.tau_callback, 10)
-
-
-        self.subs["joy"] = self.create_subscription(
-            sensor_msgs.msg.Joy, '/joy', self.joy_callback, 10)
+            std_msgs.msg.Float32MultiArray, '/CSEI/state/tau', 1)
 
         self.subs["u_cmd"] = self.create_subscription(
             std_msgs.msg.Float32MultiArray, '/CSEI/control/u_cmd', self.u_command_callback, 10)
 
-        self.joystick_name = self.declare_parameter('joystick_name', 'PS4')
+        self.tau = np.zeros(3)
 
-        self.current_task = self.declare_parameter('task', 'simple')
-        self.current_task.value
+        self.state_loop = self.create_timer(0.1, self.state_timer_callback)
 
-        self.last_transform = None
-        self.eta_publisher = self.create_timer(0.1, self.eta_publisher)
-
-
-    def eta_publisher(self):
+    def state_timer_callback(self):
 
         try:
-            self.last_transform = self.tf_buffer.lookup_transform(
-                "base_link",
+            pose = self.tf_buffer.lookup_transform(
                 "world",
+                "base_link",
                 rclpy.time.Time())
             eta = [None] * 3
 
-            eta[0] = self.last_transform.transform.translation.x
-            eta[1] = self.last_transform.transform.translation.y
+            eta[0] = pose.transform.translation.x
+            eta[1] = pose.transform.translation.y
 
-            [roll, pitch, yaw] = self.quat2eul(
-                self.last_transform.transform.rotation.x,
-                self.last_transform.transform.rotation.y,
-                self.last_transform.transform.rotation.z,
-                self.last_transform.transform.rotation.w
-            )
-            eta[2] = yaw
+            eta[2], _, _ = quat(
+                pose.transform.rotation.w,
+                pose.transform.rotation.x,
+                pose.transform.rotation.y,
+                pose.transform.rotation.z
+            ).yaw_pitch_roll
 
             msg = std_msgs.msg.Float32MultiArray()
+
             msg.data = eta
             self.pubs['eta'].publish(msg)
+
         except TransformException as ex:
-            self.get_logger().info(f'Could not transform : {ex}')
+            self.get_logger().info(f'Could not transform : {ex}', throttle_duration_sec=1.0)
+
+        msg = std_msgs.msg.Float32MultiArray()
+        msg.data = self.tau.tolist()
+        self.pubs['tau'].publish(msg)
 
     def u_command_callback(self, msg: std_msgs.msg.Float32MultiArray):
         # Check if the message is of correct size
@@ -108,6 +101,7 @@ class UtilityNode(rclpy.node.Node):
             self.get_logger().warn(
                 f"ill sized u_cmd array with length {len(msg.data)}: {msg.data}")
             self.get_logger().info(f"{msg}")
+            self.tau = np.zeros(3)
             return
 
         # Extract the data
@@ -128,42 +122,21 @@ class UtilityNode(rclpy.node.Node):
         f.force.y = u2 * math.sin(a2)
         self.pubs['starboard'].publish(f)
 
-    @staticmethod
-    def quat2eul(x, y, z, w):
-        """
-        Convert a quaternion into euler angles (roll, pitch, yaw)
-        roll is rotation around x in radians (counterclockwise)
-        pitch is rotation around y in radians (counterclockwise)
-        yaw is rotation around z in radians (counterclockwise)
-        """
-        t0 = +2.0 * (w * x + y * z)
-        t1 = +1.0 - 2.0 * (x * x + y * y)
-        roll_x = math.atan2(t0, t1)
+        B = np.array([
+            [0, np.cos(a1), np.cos(a2), 0],
+            [1, np.sin(a1), np.sin(a2), 1],
+            [0.3875,
+             0.0550 * np.cos(a1) - 0.4574 * np.sin(a1),
+             -0.4574 * np.sin(a2) - 0.0550 * np.cos(a2)
+            ]
+        ])
+        self.tau = B @ np.array([
+            [np.clip(u0, -1, 1)]
+            [np.clip(u1, -2, 2)],
+            [np.clip(u2, -2, 2)],
+        ])
 
-        t2 = +2.0 * (w * y - z * x)
-        t2 = +1.0 if t2 > +1.0 else t2
-        t2 = -1.0 if t2 < -1.0 else t2
-        pitch_y = math.asin(t2)
 
-        t3 = +2.0 * (w * z + x * y)
-        t4 = +1.0 - 2.0 * (y * y + z * z)
-        yaw_z = math.atan2(t3, t4)
-
-        return roll_x, pitch_y, yaw_z  # in radians
-
-    def joy_callback(self, msg: sensor_msgs.msg.Joy):
-        pass
-
-    def tau_callback(self, msg: geometry_msgs.msg.Wrench):
-        tau = [None] * 3
-
-        tau[0] = msg.force.x
-        tau[1] = msg.force.y
-        tau[2] = msg.torque.z
-
-        msg = std_msgs.msg.Float32MultiArray()
-        msg.data = tau
-        self.pubs['tau'].publish(msg)
 
 def main(args=None):
     # Initialize the node

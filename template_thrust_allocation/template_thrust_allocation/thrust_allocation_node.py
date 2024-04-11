@@ -22,36 +22,27 @@
 
 import rclpy
 import rclpy.node
+import std_msgs.msg
 import tmr4243_interfaces.msg
 import geometry_msgs.msg
+import numpy as np
+import math
 
-from tf2_ros import TransformException
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
 
-from template_thrust_allocation.thurster_configuration_matrix import thrust_configuration_matrix
+from template_thrust_allocation.thrust_allocation_matrix import thrust_configuration_matrix
+
 from template_thrust_allocation.thruster_allocation import thruster_allocation
 
 class ThrustAllocation(rclpy.node.Node):
     def __init__(self):
-        super().__init__("cse_thrust_allocation")
+        super().__init__("tmr4243_thrust_allocation_node")
 
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
 
         self.pubs = {}
         self.subs = {}
 
-        self.subs["generalized_forces"] = self.create_subscription(
-             geometry_msgs.msg.Wrench, '/CSEI/generalized_forces', self.recived_forces, 10) 
-
-        
-        self.pubs["tunnel"] = self.create_publisher(
-            geometry_msgs.msg.Wrench, '/CSEI/thrusters/tunnel/command', 1)
-        self.pubs["port"] = self.create_publisher(
-            geometry_msgs.msg.Wrench, '/CSEI/thrusters/port/command', 1)
-        self.pubs["starboard"] = self.create_publisher(
-            geometry_msgs.msg.Wrench, '/CSEI/thrusters/starboard/command', 1)
+        self.pubs["u_cmd"] = self.create_publisher(
+            std_msgs.msg.Float32MultiArray, '/CSEI/control/u_cmd', 1)
 
         self.B = thrust_configuration_matrix()
 
@@ -65,25 +56,15 @@ class ThrustAllocation(rclpy.node.Node):
 
     def timer_callback(self):
 
-        try:
-            self.last_transform = self.tf_buffer.lookup_transform(
-                "base_link",
-                "world",
-                rclpy.time.Time())
-        except TransformException as ex:
-            self.get_logger().info(
-                f'Could not transform : {ex}')
-
         self.current_controller = self.get_parameter('current_controller')
 
-        
+
         self.get_logger().info(f"Parameter task: {self.current_controller.value}", throttle_duration_sec=1.0)
 
 
-    def thrust_allocation_callback(self):
+    def thrust_allocation_callback(self, msg):
 
         if self.last_recived_forces is not None:
-            u = [u0, u1, u2, a1, a2]
             u = thruster_allocation(self.recived_forces, self.B)
 
             f = geometry_msgs.msg.Wrench()
@@ -91,32 +72,16 @@ class ThrustAllocation(rclpy.node.Node):
             self.pubs['tunnel'].publish(f)
 
             f = geometry_msgs.msg.Wrench()
-            f.force.x = u[1] * math.cos(u[3])
-            f.force.y = u[1] * math.sin(u[3])
+            f.force.x = u[1] * np.cos(u[3])
+            f.force.y = u[1] * np.sin(u[3])
             self.pubs['port'].publish(f)
 
             f = geometry_msgs.msg.Wrench()
-            f.force.x = u[2] * math.cos(u[4])
-            f.force.y = u[2] * math.sin(u[4])
+            f.force.x = u[2] * np.cos(u[4])
+            f.force.y = u[2] * np.sin(u[4])
             self.pubs['starboard'].publish(f)
 
             self.last_recived_forces = None
-
-        else:
-            f = geometry_msgs.msg.Wrench()
-            f.force.x = 0
-            self.pubs['tunnel'].publish(f)
-
-            f = geometry_msgs.msg.Wrench()
-            f.force.x = 0
-            f.force.y = 0
-            self.pubs['port'].publish(f)
-
-            f = geometry_msgs.msg.Wrench()
-            f.force.x = 0
-            f.force.y = 0
-            self.pubs['starboard'].publish(f)
-
 
     def recived_forces(self, msg):
         self.last_recived_forces = msg

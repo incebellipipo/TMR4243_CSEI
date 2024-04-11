@@ -13,14 +13,14 @@ def joystick_simple(joystick: sensor_msgs.msg.Joy):
 
     # Starboard
     u1 = np.linalg.norm(np.array((
-        joystick.axes[LEFT_STICK_HORIZONTAL], joystick.axes[LEFT_STICK_LATHERAL]
+        joystick.axes[LEFT_STICK_HORIZONTAL], joystick.axes[LEFT_STICK_VERTICAL]
     )))
-    a1 = np.arctan2(joystick.axes[LEFT_STICK_LATHERAL], joystick.axes[LEFT_STICK_HORIZONTAL])
+    a1 = np.arctan2(joystick.axes[LEFT_STICK_VERTICAL], joystick.axes[LEFT_STICK_HORIZONTAL])
 
     # Starboard
     u2 = np.linalg.norm(np.array((
-        joystick.axes[RIGHT_STICK_HORIZONTAL], joystick.axes[RIGHT_STICK_LATHERAL]
+        joystick.axes[RIGHT_STICK_HORIZONTAL], joystick.axes[RIGHT_STICK_VERTICAL]
     )))
-    a2 = np.arctan2(joystick.axes[RIGHT_STICK_LATHERAL], joystick.axes[RIGHT_STICK_HORIZONTAL])
+    a2 = np.arctan2(joystick.axes[RIGHT_STICK_VERTICAL], joystick.axes[RIGHT_STICK_HORIZONTAL])
 
     return (u0, u1, u2, a1, a2)
