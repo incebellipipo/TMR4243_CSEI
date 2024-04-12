@@ -127,7 +127,7 @@ class Controller(rclpy.node.Node):
 
     def timer_callback(self):
 
-        self.task = self.get_parameter('task').get_parameter_value().string_value
+        self.task = self.get_parameter("task").get_parameter_value().string_value
         self.p_gain = self.get_parameter("p_gain").get_parameter_value().double_value
         self.i_gain = self.get_parameter("i_gain").get_parameter_value().double_value
         self.d_gain = self.get_parameter("d_gain").get_parameter_value().double_value
