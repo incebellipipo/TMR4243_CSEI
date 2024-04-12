@@ -29,7 +29,7 @@ import numpy as np
 import math
 
 
-from template_thrust_allocation.thrust_allocation_matrix import thrust_configuration_matrix
+from template_thrust_allocation.thrust_allocation_matrix import polar_configuration_matrix, extended_configuration_matrix
 
 from template_thrust_allocation.thruster_allocation import thruster_allocation
 
@@ -41,49 +41,40 @@ class ThrustAllocation(rclpy.node.Node):
         self.pubs = {}
         self.subs = {}
 
+        self.subs["tau_cmd"] = self.create_subscription(
+            geometry_msgs.msg.Wrench, '/CSEI/control/tau_cmd', self.tau_cmd_callback, 1)
+
         self.pubs["u_cmd"] = self.create_publisher(
             std_msgs.msg.Float32MultiArray, '/CSEI/control/u_cmd', 1)
 
-        self.B = thrust_configuration_matrix()
-
-        self.last_transform = None
-        timer_period = 0.1 # seconds
-        self.timer = self.create_timer(timer_period, self.timer_callback)
-
-        thrust_allocation_period = 0.1 # seconds
-        self.thrust_allocation_timer = self.create_timer(thrust_allocation_period, self.thrust_allocation_callback)
-
+        self.timer = self.create_timer(0.1, self.timer_callback)
 
     def timer_callback(self):
 
-        self.current_controller = self.get_parameter('current_controller')
+        if self.last_recived_forces == None:
+            return
 
+        B = extended_configuration_matrix()
 
-        self.get_logger().info(f"Parameter task: {self.current_controller.value}", throttle_duration_sec=1.0)
+        u = thruster_allocation(self.recived_forces, B)
 
+        f = geometry_msgs.msg.Wrench()
+        f.force.x = u[0]
+        self.pubs['tunnel'].publish(f)
 
-    def thrust_allocation_callback(self, msg):
+        f = geometry_msgs.msg.Wrench()
+        f.force.x = u[1] * np.cos(u[3])
+        f.force.y = u[1] * np.sin(u[3])
+        self.pubs['port'].publish(f)
 
-        if self.last_recived_forces is not None:
-            u = thruster_allocation(self.recived_forces, self.B)
+        f = geometry_msgs.msg.Wrench()
+        f.force.x = u[2] * np.cos(u[4])
+        f.force.y = u[2] * np.sin(u[4])
+        self.pubs['starboard'].publish(f)
 
-            f = geometry_msgs.msg.Wrench()
-            f.force.x = u[0]
-            self.pubs['tunnel'].publish(f)
+        self.last_recived_forces = None
 
-            f = geometry_msgs.msg.Wrench()
-            f.force.x = u[1] * np.cos(u[3])
-            f.force.y = u[1] * np.sin(u[3])
-            self.pubs['port'].publish(f)
-
-            f = geometry_msgs.msg.Wrench()
-            f.force.x = u[2] * np.cos(u[4])
-            f.force.y = u[2] * np.sin(u[4])
-            self.pubs['starboard'].publish(f)
-
-            self.last_recived_forces = None
-
-    def recived_forces(self, msg):
+    def tau_cmd_callback(self, msg):
         self.last_recived_forces = msg
 
 

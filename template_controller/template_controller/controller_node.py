@@ -48,8 +48,8 @@ class Controller(rclpy.node.Node):
         self.subs['observer'] = self.create_subscription(
             tmr4243_interfaces.msg.Observer, '/CSEI/control/observer', self.received_observer ,10)
 
-        self.pubs["generalized_forces"] = self.create_publisher(
-             geometry_msgs.msg.Wrench, '/CSEI/generalized_forces', 1)
+        self.pubs["tau_cmd"] = self.create_publisher(
+             geometry_msgs.msg.Wrench, '/CSEI/control/tau_cmd', 1)
 
         self.p_gain = 1.0
         self.declare_parameter(
@@ -81,23 +81,23 @@ class Controller(rclpy.node.Node):
                 read_only=False
             )
         )
-        self.k1_gain = 1.0
+        self.k1_gain = [1.0, 1.0, 1.0]
         self.declare_parameter(
             "k1_gain",
             self.k1_gain,
             rcl_interfaces.msg.ParameterDescriptor(
                 description="K1 gain",
-                type=rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE,
+                type=rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE_ARRAY,
                 read_only=False
             )
         )
-        self.k2_gain = 1.0
+        self.k2_gain = [1.0, 1.0, 1.0]
         self.declare_parameter(
             "k2_gain",
             1.0,
             rcl_interfaces.msg.ParameterDescriptor(
                 description="K2 gain",
-                type=rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE,
+                type=rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE_ARRAY,
                 read_only=False
             )
         )
@@ -105,7 +105,7 @@ class Controller(rclpy.node.Node):
         self.task  = Controller.TASK_PD_FF_CONTROLLER
         self.declare_parameter(
             'task',
-            self.control_task,
+            self.task,
             rcl_interfaces.msg.ParameterDescriptor(
                 description="Task",
                 type=rcl_interfaces.msg.ParameterType.PARAMETER_STRING,
@@ -113,9 +113,9 @@ class Controller(rclpy.node.Node):
                 additional_constraints=f"Allowed values: {' '.join(Controller.TASKS)}"
             )
         )
-        self.current_controller.value
 
         self.last_reference = None
+
         self.last_observation = None
 
         timer_period = 0.1 # seconds
@@ -131,10 +131,10 @@ class Controller(rclpy.node.Node):
         self.p_gain = self.get_parameter("p_gain").get_parameter_value().double_value
         self.i_gain = self.get_parameter("i_gain").get_parameter_value().double_value
         self.d_gain = self.get_parameter("d_gain").get_parameter_value().double_value
-        self.k1_gain = self.get_parameter("k1_gain").get_parameter_value().double_value
-        self.k2_gain = self.get_parameter("k2_gain").get_parameter_value().double_value
+        self.k1_gain = self.get_parameter("k1_gain").get_parameter_value().double_array_value
+        self.k2_gain = self.get_parameter("k2_gain").get_parameter_value().double_array_value
 
-        self.get_logger().info(f"Parameter task: {self.control_task}", throttle_duration_sec=1.0)
+        self.get_logger().info(f"Parameter task: {self.task}", throttle_duration_sec=1.0)
 
 
     def controller_callback(self):
