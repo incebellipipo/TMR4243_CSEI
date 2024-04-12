@@ -49,7 +49,7 @@ class ThrustAllocation(rclpy.node.Node):
         if self.last_recived_forces == None:
             return
 
-        u = thruster_allocation(self.recived_forces)
+        u = thruster_allocation(self.last_recived_forces)
 
         f = geometry_msgs.msg.Wrench()
         f.force.x = u[0]
