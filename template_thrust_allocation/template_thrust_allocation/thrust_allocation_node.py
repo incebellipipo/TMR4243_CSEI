@@ -23,13 +23,8 @@
 import rclpy
 import rclpy.node
 import std_msgs.msg
-import tmr4243_interfaces.msg
 import geometry_msgs.msg
 import numpy as np
-import math
-
-
-from template_thrust_allocation.thrust_allocation_matrix import polar_configuration_matrix, extended_configuration_matrix
 
 from template_thrust_allocation.thruster_allocation import thruster_allocation
 
@@ -54,9 +49,7 @@ class ThrustAllocation(rclpy.node.Node):
         if self.last_recived_forces == None:
             return
 
-        B = extended_configuration_matrix()
-
-        u = thruster_allocation(self.recived_forces, B)
+        u = thruster_allocation(self.recived_forces)
 
         f = geometry_msgs.msg.Wrench()
         f.force.x = u[0]

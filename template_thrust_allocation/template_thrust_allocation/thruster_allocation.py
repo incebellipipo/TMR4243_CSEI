@@ -6,7 +6,7 @@ import std_msgs.msg
 
 import typing
 
-def thruster_allocation(tau: geometry_msgs.msg.Wrench, allocation_matrix: np.ndarray):
+def thruster_allocation(tau: geometry_msgs.msg.Wrench):
    # Replace the following line
    Fx = tau.force.x
    Fy = tau.force.y
