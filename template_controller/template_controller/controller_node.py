@@ -175,7 +175,7 @@ class Controller(rclpy.node.Node):
         f.force.x = tau[0]
         f.force.y = tau[1]
         f.torque.z = tau[2]
-        self.pubs["generalized_forces"].publish(f)
+        self.pubs["tau_cmd"].publish(f)
 
     def received_reference(self, msg):
         self.last_reference = msg
