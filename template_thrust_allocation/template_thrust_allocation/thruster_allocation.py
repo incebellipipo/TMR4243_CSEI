@@ -6,10 +6,14 @@ import std_msgs.msg
 
 import typing
 
-
-def thruster_allocation(tau: np.ndarray, allocation_matrix: np.ndarray):
-   # u = [u0, u1, u2, a1, a2]
+def thruster_allocation(tau: geometry_msgs.msg.Wrench):
    # Replace the following line
+   Fx = tau.force.x
+   Fy = tau.force.y
+   Mz = tau.torque.z
+   tau = np.array([Fx, Fy, Mz])
+
+   # u = [u0, u1, u2, a1, a2]
    u = np.zeros(5)
 
    #

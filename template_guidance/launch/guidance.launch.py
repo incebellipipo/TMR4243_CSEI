@@ -16,15 +16,24 @@ def generate_launch_description():
         choices=['stationkeeping', 'straight_line']
     )
 
+    arg_param_file = launch.actions.DeclareLaunchArgument(
+        'param_file',
+        default_value=launch.substitutions.PathJoinSubstitution(
+            [launch_ros.substitutions.FindPackageShare('template_guidance'), 'config', 'param.yaml']
+        )
+    )
+
     node_guidance = launch_ros.actions.Node(
         package='template_guidance',
         executable='guidance_node.py',
         name=f'{anon()}guidance',
         parameters=[
             {'task': launch.substitutions.LaunchConfiguration('task')},
+            launch.substitutions.LaunchConfiguration('param_file')
         ]
     )
     return launch.LaunchDescription([
         arg_task,
+        arg_param_file,
         node_guidance
     ])
