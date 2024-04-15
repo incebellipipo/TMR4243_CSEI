@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sqlite3
 from rosidl_runtime_py.utilities import get_message
 from rclpy.serialization import deserialize_message
