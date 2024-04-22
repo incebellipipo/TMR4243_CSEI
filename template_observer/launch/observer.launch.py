@@ -12,8 +12,8 @@ def generate_launch_description():
 
     config = os.path.join(
         get_package_share_directory('template_observer'),
-        'param',
-        'config.yaml'
+        'config',
+        'yaml.yaml'
     )
 
     arg_task = launch.actions.DeclareLaunchArgument(
