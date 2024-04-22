@@ -29,22 +29,15 @@ import std_msgs.msg
 import geometry_msgs.msg
 import sensor_msgs.msg
 
-from tf2_ros import TransformException
-from tf2_ros.buffer import Buffer
-from tf2_ros.transform_listener import TransformListener
-
 import template_joystick_control.joystick_mapping
 from template_joystick_control.joystick_simple import joystick_simple
 from template_joystick_control.joystick_force_basin_relative import joystick_force_basin_relative
 from template_joystick_control.joystick_force_body_relative import joystick_force_body_relative
 
 
-class JoystickForce(rclpy.node.Node):
+class JoystickControlNode(rclpy.node.Node):
     def __init__(self):
-        super().__init__('cse_teleop')
-
-        self.tf_buffer = Buffer()
-        self.tf_listener = TransformListener(self.tf_buffer, self)
+        super().__init__('tmr4243_joystick_control_node')
 
         self.pubs = {}
         self.subs = {}
@@ -52,26 +45,18 @@ class JoystickForce(rclpy.node.Node):
         self.subs["joy"] = self.create_subscription(
             sensor_msgs.msg.Joy, '/joy', self.joy_callback, 10)
 
+        self.subs["eta"] = self.create_subscription(
+            std_msgs.msg.Float32MultiArray, '/tmr4243/state/eta', self.eta_callback, 10)
+
         self.pubs["u_cmd"] = self.create_publisher(
-            std_msgs.msg.Float32MultiArray, '/CSEI/control/u_cmd', 10)
+            std_msgs.msg.Float32MultiArray, '/tmr4243/command/u', 10)
 
         self.current_task = self.declare_parameter('task', 'simple')
         self.current_task.value
-
-        self.last_transform = None
+        self.last_eta_msg = None
         self.timer = self.create_timer(0.1, self.timer_callback)
 
     def timer_callback(self):
-
-        try:
-            self.last_transform = self.tf_buffer.lookup_transform(
-                "base_link",
-                "world",
-                rclpy.time.Time())
-        except TransformException as ex:
-            self.get_logger().info(
-                f'Could not transform : {ex}')
-
         self.current_task = self.get_parameter('task')
 
         self.get_logger().info(
@@ -84,7 +69,10 @@ class JoystickForce(rclpy.node.Node):
         if "simple" in self.current_task.value:
             result = joystick_simple(msg)
         elif "basin" in self.current_task.value:
-            result = joystick_force_basin_relative(msg, self.last_transform)
+            if self.last_eta_msg is None:
+                self.get_logger().warn(f"Last eta message is {self.last_eta_msg}, cannot basin relative", throttle_duration_sec=1.0)
+                return
+            result = joystick_force_basin_relative(msg, self.last_eta_msg)
         elif "body" in self.current_task.value:
             result = joystick_force_body_relative(msg)
 
@@ -99,11 +87,14 @@ class JoystickForce(rclpy.node.Node):
         self.pubs["u_cmd"].publish(u_cmd)
 
 
+    def eta_callback(self, msg):
+        self.last_eta_msg = msg
+
 def main(args=None):
     # Initialize the node
     rclpy.init(args=args)
 
-    rclpy.spin(JoystickForce())
+    rclpy.spin(JoystickControlNode())
 
     rclpy.shutdown()
 

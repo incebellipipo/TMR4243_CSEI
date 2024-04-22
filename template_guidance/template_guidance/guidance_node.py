@@ -43,10 +43,10 @@ class Guidance(rclpy.node.Node):
         self.subs = {}
 
         self.pubs["reference"] = self.create_publisher(
-            tmr4243_interfaces.msg.Reference, '/CSEI/control/reference', 1)
+            tmr4243_interfaces.msg.Reference, '/tmr4243/control/reference', 1)
 
-        self.subs["observer"] = self.create_subscription(
-            tmr4243_interfaces.msg.Observer, '/CSEI/control/observer', self.observer_callback, 10)
+        self.subs["observed_eta"] = self.create_subscription(
+            tmr4243_interfaces.msg.Observer, '/tmr4243/observer/eta', self.observer_callback, 10)
 
         self.last_observation = None
 

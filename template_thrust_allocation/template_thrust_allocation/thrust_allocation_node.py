@@ -37,10 +37,10 @@ class ThrustAllocation(rclpy.node.Node):
         self.subs = {}
 
         self.subs["tau_cmd"] = self.create_subscription(
-            geometry_msgs.msg.Wrench, '/CSEI/control/tau_cmd', self.tau_cmd_callback, 1)
+            geometry_msgs.msg.Wrench, '/tmr4243/command/tau', self.tau_cmd_callback, 1)
 
         self.pubs["u_cmd"] = self.create_publisher(
-            std_msgs.msg.Float32MultiArray, '/CSEI/control/u_cmd', 1)
+            std_msgs.msg.Float32MultiArray, '/tmr4243/command/u', 1)
 
         self.timer = self.create_timer(0.1, self.timer_callback)
 

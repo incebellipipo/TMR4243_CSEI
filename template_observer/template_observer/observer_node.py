@@ -47,13 +47,13 @@ class Observer(rclpy.node.Node):
         self.pubs = {}
 
         self.subs["tau"] = self.create_subscription(
-            std_msgs.msg.Float32MultiArray, '/CSEI/state/tau', self.tau_callback, 10
+            std_msgs.msg.Float32MultiArray, '/tmr4243/state/tau', self.tau_callback, 10
         )
         self.subs["eta"] = self.create_subscription(
-            std_msgs.msg.Float32MultiArray, '/CSEI/state/eta', self.eta_callback, 10
+            std_msgs.msg.Float32MultiArray, '/tmr4243/state/eta', self.eta_callback, 10
         )
         self.pubs['observer'] = self.create_publisher(
-            tmr4243_interfaces.msg.Observer, '/CSEI/observer/state', 1
+            tmr4243_interfaces.msg.Observer, '/tmr4243/observer/eta', 1
         )
 
         self.last_transform = None

@@ -43,13 +43,13 @@ class Controller(rclpy.node.Node):
         self.subs = {}
 
         self.subs["reference"] = self.create_subscription(
-            tmr4243_interfaces.msg.Reference, '/CSEI/control/reference', self.received_reference, 10)
+            tmr4243_interfaces.msg.Reference, '/tmr4243/control/reference', self.received_reference, 10)
 
         self.subs['observer'] = self.create_subscription(
-            tmr4243_interfaces.msg.Observer, '/CSEI/control/observer', self.received_observer ,10)
+            tmr4243_interfaces.msg.Observer, '/tmr4243/observer/eta', self.received_observer ,10)
 
         self.pubs["tau_cmd"] = self.create_publisher(
-             geometry_msgs.msg.Wrench, '/CSEI/control/tau_cmd', 1)
+             geometry_msgs.msg.Wrench, '/tmr4243/command/tau', 1)
 
         self.p_gain = 1.0
         self.declare_parameter(

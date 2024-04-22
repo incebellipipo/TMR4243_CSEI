@@ -52,13 +52,13 @@ class UtilityNode(rclpy.node.Node):
             geometry_msgs.msg.Wrench, '/CSEI/thrusters/port/command', 1)
         self.pubs["starboard"] = self.create_publisher(
             geometry_msgs.msg.Wrench, '/CSEI/thrusters/starboard/command', 1)
-        self.pubs["eta"] = self.create_publisher(
-            std_msgs.msg.Float32MultiArray, '/CSEI/state/eta', 1)
-        self.pubs["tau"] = self.create_publisher(
-            std_msgs.msg.Float32MultiArray, '/CSEI/state/tau', 1)
 
+        self.pubs["eta"] = self.create_publisher(
+            std_msgs.msg.Float32MultiArray, '/tmr4243/state/eta', 1)
+        self.pubs["tau"] = self.create_publisher(
+            std_msgs.msg.Float32MultiArray, '/tmr4243/state/tau', 1)
         self.subs["u_cmd"] = self.create_subscription(
-            std_msgs.msg.Float32MultiArray, '/CSEI/control/u_cmd', self.u_command_callback, 10)
+            std_msgs.msg.Float32MultiArray, '/tmr4243/command/u', self.u_command_callback, 10)
 
         self.tau = np.zeros(3)
 
