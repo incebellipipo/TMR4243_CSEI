@@ -23,25 +23,22 @@
 import rclpy
 import rclpy.node
 import numpy as np
+import rcl_interfaces.msg
 
 import std_msgs.msg
 import tmr4243_interfaces.msg
 
-from template_observer.luenberg import luenberg
+from template_observer.luenberger import luenberger
 from template_observer.wrap import wrap
 
 
 class Observer(rclpy.node.Node):
     TASK_DEADRECKONING = 'deadreckoning'
-    TASK_LUENBERG = 'luenberg'
-    TASK_LIST = [TASK_DEADRECKONING, TASK_LUENBERG]
+    TASK_LUENBERGER = 'luenberger'
+    TASK_LIST = [TASK_DEADRECKONING, TASK_LUENBERGER]
 
     def __init__(self):
         super().__init__('cse_observer')
-
-        self.L1 = self.declare_parameter('L1', [1.0] * 3)
-        self.L2 = self.declare_parameter('L2', [1.0] * 3)
-        self.L3 = self.declare_parameter('L3', [1.0] * 3)
 
         self.subs = {}
         self.pubs = {}
@@ -56,42 +53,86 @@ class Observer(rclpy.node.Node):
             tmr4243_interfaces.msg.Observer, '/tmr4243/observer/eta', 1
         )
 
-        self.last_transform = None
-        self.last_joystick_msg = None
-        self.last_eta_msg = None
-        self.last_tau_msg = None
+        self.task = Observer.TASK_LUENBERGER
+        self.declare_parameter(
+            'task',
+            self.task,
+            rcl_interfaces.msg.ParameterDescriptor(
+                description="Task",
+                type=rcl_interfaces.msg.ParameterType.PARAMETER_STRING,
+                read_only=False,
+                additional_constraints=f"Allowed values: {' '.join(Observer.TASK_LIST)}"
+            )
+        )
+
+        self.L1_value = [1.0] * 3
+        self.declare_parameter(
+            'L1',
+            self.L1_value,
+            rcl_interfaces.msg.ParameterDescriptor(
+                description="L1 gain",
+                type=rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE_ARRAY,
+                read_only=False
+            )
+        )
+
+        self.L2_value = [1.0] * 3
+        self.declare_parameter(
+            'L2',
+            self.L2_value,
+            rcl_interfaces.msg.ParameterDescriptor(
+                description="L2 gain",
+                type=rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE_ARRAY,
+                read_only=False
+            )
+        )
+
+        self.L3_value = [1.0] * 3
+        self.declare_parameter(
+            'L3',
+            self.L3_value,
+            rcl_interfaces.msg.ParameterDescriptor(
+                description="L3 gain",
+                type=rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE_ARRAY,
+                read_only=False
+            )
+        )
+
+        self.last_eta = np.zeros((3, 1), dtype=float)
+
+        self.last_tau = np.zerso((3, 1), dtype=float)
 
         self.observer_runner = self.create_timer(0.1, self.observer_loop)
 
     def observer_loop(self):
-        self.L1 = self.get_parameter('L1')
-        self.L2 = self.get_parameter('L2')
-        self.L3 = self.get_parameter('L3')
 
-        if \
-                self.last_eta_msg is None or \
-                self.last_tau_msg is None:
-            return
+        self.L1_value = self.get_parameter('L1').get_parameter_value().double_array_value
+        self.L2_value = self.get_parameter('L2').get_parameter_value().double_array_value
+        self.L3_value = self.get_parameter('L3').get_parameter_value().double_array_value
 
-        eta_hat, nu_hat, bias_hat = luenberg(
-            self.last_eta_msg.data,
-            self.last_tau_msg.data,
-            self.L1.value,
-            self.L2.value,
-            self.L3.value
+        L1 = np.diag(self.L1_value, dtype=float)
+        L2 = np.diag(self.L2_value, dtype=float)
+        L3 = np.diag(self.L3_value, dtype=float)
+
+        eta_hat, nu_hat, bias_hat = luenberger(
+            self.last_eta,
+            self.last_tau,
+            L1,
+            L2,
+            L3
         )
 
         obs = tmr4243_interfaces.msg.Observer()
-        obs.eta = eta_hat
-        obs.nu = nu_hat
-        obs.bias = bias_hat
+        obs.eta = eta_hat.flatten().tolist()
+        obs.nu = nu_hat.flatten().tolist()
+        obs.bias = bias_hat.flatten().tolist()
         self.pubs['observer'].publish(obs)
 
     def tau_callback(self, msg: std_msgs.msg.Float32MultiArray):
-        self.last_tau_msg = msg
+        self.last_tau = np.ndarray([msg.data], dtype=float).T
 
     def eta_callback(self, msg: std_msgs.msg.Float32MultiArray):
-        self.last_eta_msg = msg
+        self.last_eta = np.ndarray([msg.data], dtype=float).T
 
 
 def main():

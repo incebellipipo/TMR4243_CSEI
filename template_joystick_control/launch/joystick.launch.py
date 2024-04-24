@@ -9,6 +9,13 @@ from tmr4243_utilities.utilities import anon
 
 def generate_launch_description():
 
+    arg_param_file = launch.actions.DeclareLaunchArgument(
+        'param_file',
+        default_value=launch.substitutions.PathJoinSubstitution(
+            [launch_ros.substitutions.FindPackageShare('template_joystick_control'), 'config', 'param.yaml']
+        )
+    )
+
     arg_task = launch.actions.DeclareLaunchArgument(
         'task',
         default_value=launch.substitutions.TextSubstitution(text='simple'),
@@ -34,6 +41,7 @@ def generate_launch_description():
 
     return launch.LaunchDescription([
         arg_task,
+        arg_param_file,
         node_joystick_control,
         node_joy
     ])

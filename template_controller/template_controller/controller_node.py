@@ -24,7 +24,8 @@ import rclpy
 import rclpy.node
 import rcl_interfaces.msg
 import tmr4243_interfaces.msg
-import geometry_msgs.msg
+import std_msgs.msg
+import numpy as np
 
 from template_controller.PID_controller import PID_controller
 from template_controller.PD_FF_controller import PD_FF_controller
@@ -49,7 +50,7 @@ class Controller(rclpy.node.Node):
             tmr4243_interfaces.msg.Observer, '/tmr4243/observer/eta', self.received_observer ,10)
 
         self.pubs["tau_cmd"] = self.create_publisher(
-             geometry_msgs.msg.Wrench, '/tmr4243/command/tau', 1)
+            std_msgs.msg.Float32MultiArray, '/tmr4243/command/tau', 1)
 
         self.p_gain = 1.0
         self.declare_parameter(
@@ -136,10 +137,10 @@ class Controller(rclpy.node.Node):
 
         self.get_logger().info(f"Parameter task: {self.task}", throttle_duration_sec=1.0)
 
-
     def controller_callback(self):
 
-        if self.last_observation == None:
+        if self.last_reference == None or self.last_observation == None:
+            self.get_logger().warn("Last reference or last observation is None", throttle_duration_sec=1.0)
             return
 
         if Controller.TASK_PD_FF_CONTROLLER in self.task:
@@ -165,17 +166,16 @@ class Controller(rclpy.node.Node):
                 self.k2_gain
             )
         else:
-            tau = [0.0, 0.0, 0.0]
+            tau = np.zeros((3, 1), dtype=float)
 
         if len(tau) != 3:
             self.get_logger().warn(f"tau has length of {len(tau)} but it should be 3: tau := [Fx, Fy, Mz]", throttle_duration_sec=1.0)
             return
 
-        f = geometry_msgs.msg.Wrench()
-        f.force.x = tau[0]
-        f.force.y = tau[1]
-        f.torque.z = tau[2]
-        self.pubs["tau_cmd"].publish(f)
+
+        tau_cmd = std_msgs.msg.Float32MultiArray()
+        tau_cmd.data = tau.flatten().tolist()
+        self.pubs["tau_cmd"].publish(tau_cmd)
 
     def received_reference(self, msg):
         self.last_reference = msg
@@ -185,12 +185,10 @@ class Controller(rclpy.node.Node):
 
 
 def main(args=None):
-    # Initialize the node
     rclpy.init(args=args)
 
-    node = Controller()
+    rclpy.spin(Controller())
 
-    rclpy.spin(node)
     rclpy.shutdown()
 
 if __name__ == '__main__':

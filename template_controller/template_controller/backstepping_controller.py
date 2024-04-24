@@ -2,7 +2,7 @@
 
 import numpy as np
 
-def backstepping_controller(observer, reference, K1_gain, K2_gain):
+def backstepping_controller(observer, reference, K1_gain, K2_gain) -> np.ndarray:
 
     # Getting the states from the observer
     eta_hat = observer.eta
@@ -18,7 +18,5 @@ def backstepping_controller(observer, reference, K1_gain, K2_gain):
     v_s = reference.v_s
     v_ss = reference.v_ss
 
-    # Replace the following line
-    tau = [0, 0, 0]
-    
+    tau = np.zeros((3, 1), dtype=float)
     return tau

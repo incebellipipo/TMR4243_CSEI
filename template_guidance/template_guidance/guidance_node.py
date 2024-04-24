@@ -24,12 +24,11 @@ import rclpy
 import rclpy.node
 import rcl_interfaces.msg
 import tmr4243_interfaces.msg
+import numpy as np
 
 from template_guidance.straight_line import straight_line, update_law
 from template_guidance.stationkeeping import stationkeeping
 from template_guidance.path import path
-
-
 
 class Guidance(rclpy.node.Node):
     TASK_STATIONKEEPING = 'stationkeeping'
@@ -81,24 +80,25 @@ class Guidance(rclpy.node.Node):
         if Guidance.TASK_STATIONKEEPING in self.task:
             eta_d, eta_ds, eta_ds2 = stationkeeping()
 
-            n = tmr4243_interfaces.msg.Reference()
-            n.eta_d = list(eta_d)
-            n.eta_ds = list(eta_ds)
-            n.eta_ds2 = list(eta_ds2)
-            self.pubs["reference"].publish(n)
+            msg = tmr4243_interfaces.msg.Reference()
+            msg.eta_d = eta_d.flatten().tolist()
+            msg.eta_ds = eta_ds.flatten().tolist()
+            msg.eta_ds2 = eta_ds2.flatten().tolist()
+
+            self.pubs["reference"].publish(msg)
 
         elif Guidance.TASK_STRAIGHT_LINE in self.task:
             eta_d, eta_ds, eta_ds2 = straight_line()
             w, v_s, v_ss = update_law()
 
-            n = tmr4243_interfaces.msg.Reference()
-            n.eta_d = list(eta_d)
-            n.eta_ds = list(eta_ds)
-            n.eta_ds2 = list(eta_ds2)
-            n.w = w
-            n.v_s = v_s
-            n.v_ss = v_ss
-            self.pubs["reference"].publish(n)
+            msg = tmr4243_interfaces.msg.Reference()
+            msg.eta_d = eta_d.flatten().tolist()
+            msg.eta_ds = eta_ds.flatten().tolist()
+            msg.eta_ds2 = eta_ds2.flatten().tolist()
+            msg.w = w
+            msg.v_s = v_s
+            msg.v_ss = v_ss
+            self.pubs["reference"].publish(msg)
 
     def observer_callback(self, msg):
 

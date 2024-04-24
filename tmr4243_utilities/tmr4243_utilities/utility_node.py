@@ -28,13 +28,13 @@ import rclpy.node
 
 import std_msgs.msg
 import geometry_msgs.msg
-import sensor_msgs.msg
 
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
 from pyquaternion import Quaternion as quat
+
 
 class UtilityNode(rclpy.node.Node):
     def __init__(self):
@@ -84,12 +84,12 @@ class UtilityNode(rclpy.node.Node):
             ).yaw_pitch_roll
 
             msg = std_msgs.msg.Float32MultiArray()
-
             msg.data = eta
             self.pubs['eta'].publish(msg)
 
         except TransformException as ex:
-            self.get_logger().info(f'Could not transform : {ex}', throttle_duration_sec=1.0)
+            self.get_logger().info(
+                f'Could not transform : {ex}', throttle_duration_sec=5.0)
 
         msg = std_msgs.msg.Float32MultiArray()
         msg.data = list(self.tau.flatten())
@@ -125,7 +125,8 @@ class UtilityNode(rclpy.node.Node):
         B = np.array([
             [0, np.cos(a1), np.cos(a2)],
             [1, np.sin(a1), np.sin(a2)],
-            [0.3875, 0.0550 * np.cos(a1) - 0.4574 * np.sin(a1), -0.4574 * np.sin(a2) - 0.0550 * np.cos(a2)]
+            [0.3875, 0.0550 * np.cos(a1) - 0.4574 * np.sin(a1), -
+             0.4574 * np.sin(a2) - 0.0550 * np.cos(a2)]
         ])
 
         np.clip(u0, -1.0, 1.0)
@@ -133,6 +134,7 @@ class UtilityNode(rclpy.node.Node):
         np.clip(u2, -2.0, 2.0)
 
         self.tau = B @ np.array([[u0], [u1], [u2]])
+
 
 def main(args=None):
     # Initialize the node
@@ -147,4 +149,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-

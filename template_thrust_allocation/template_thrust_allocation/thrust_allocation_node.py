@@ -1,4 +1,4 @@
- #!/usr/bin/env python3
+#!/usr/bin/env python3
 #
 # This file is part of CyberShip Enterpries Suite.
 #
@@ -23,52 +23,39 @@
 import rclpy
 import rclpy.node
 import std_msgs.msg
-import geometry_msgs.msg
 import numpy as np
 
 from template_thrust_allocation.thruster_allocation import thruster_allocation
+
 
 class ThrustAllocation(rclpy.node.Node):
     def __init__(self):
         super().__init__("tmr4243_thrust_allocation_node")
 
-
         self.pubs = {}
         self.subs = {}
 
         self.subs["tau_cmd"] = self.create_subscription(
-            geometry_msgs.msg.Wrench, '/tmr4243/command/tau', self.tau_cmd_callback, 1)
+            std_msgs.msg.Float32MultiArray, '/tmr4243/command/tau', self.tau_cmd_callback, 1)
 
         self.pubs["u_cmd"] = self.create_publisher(
             std_msgs.msg.Float32MultiArray, '/tmr4243/command/u', 1)
+
+        self.last_tau = np.zeros((3, 1), dtype=float)
 
         self.timer = self.create_timer(0.1, self.timer_callback)
 
     def timer_callback(self):
 
-        if self.last_recived_forces == None:
-            return
+        u_cmd = std_msgs.msg.Float32MultiArray()
 
-        u = thruster_allocation(self.last_recived_forces)
+        u_cmd.data = thruster_allocation(self.tau).flatten().tobytes()
 
-        f = geometry_msgs.msg.Wrench()
-        f.force.x = u[0]
-        self.pubs['tunnel'].publish(f)
-
-        f = geometry_msgs.msg.Wrench()
-        f.force.x = u[1] * np.cos(u[3])
-        f.force.y = u[1] * np.sin(u[3])
-        self.pubs['port'].publish(f)
-
-        f = geometry_msgs.msg.Wrench()
-        f.force.x = u[2] * np.cos(u[4])
-        f.force.y = u[2] * np.sin(u[4])
-        self.pubs['starboard'].publish(f)
-
-        self.last_recived_forces = None
+        self.pubs["u_cmd"].publish(u_cmd)
 
     def tau_cmd_callback(self, msg):
-        self.last_recived_forces = msg
+
+        self.last_tau = np.array([msg.data], dtype=float).T
 
 
 def main(args=None):
@@ -80,6 +67,6 @@ def main(args=None):
     rclpy.spin(node)
     rclpy.shutdown()
 
+
 if __name__ == '__main__':
     main()
-
