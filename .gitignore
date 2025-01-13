@@ -334,3 +334,4 @@ $RECYCLE.BIN/
 .vscode
 .build
 
+*.Identifier
