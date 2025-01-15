@@ -10,16 +10,24 @@ Do take a look at the [Jupyter Notebooks inside](notebooks) and the code inside 
 
 ## Installation
 
-> This package is designed for Python 3, ROS Humble, and Ubuntu 22.04 (Focal).
+> This package is designed for Python 3, [ROS Jazzy](https://docs.ros.org/en/jazzy/index.html), and [Ubuntu 24.04 (Noble)](https://releases.ubuntu.com/noble/).
 Before proceeding with the packages, please follow the [installations for ROS](https://docs.ros.org/en/humble/Installation.html) and
 python.
 
 1. Create a workspace
     ```bash
-    mkdir -p ros_ws/src
+    mkdir -p ~/ros_ws/src
     ```
 
 1. Clone the repository inside the workspace
+    ```bash
+    git clone https://github.com/NTNU-MCS/TMR4243_LAB.git ~/ros_ws/src
+    ```
+
+1. Clone the `cybership_software_suite` repository inside the workspace
+    ```bash
+    git clone https://github.com/NTNU-MCS/cybership_software_suite.git ~/ros_ws/src
+    ```
 
 1. Install ROS dependencies
     ```bash
@@ -27,17 +35,13 @@ python.
     ```
 
 1. After installation, install the required python packages.
-
     ```bash
-    pip install numpy
-    pip install scipy
+    sudo apt install python3-numpy python3-scipy
     ```
 
-1. If there is any problem with the instructions, create a github issue.
+    Note: On Ubuntu 24, python packages are now installed with `apt`, and most packages can be found with `python3-` prefix.
 
-## Updating the package
-
-The package is updated with `git` command.
+1. If there is any problem with the instructions, [create a github issue](https://github.com/NTNU-MCS/TMR4243_LAB/issues/new).
 
 ## Quick Start
 

@@ -47,11 +47,11 @@ class UtilityNode(rclpy.node.Node):
         self.subs = {}
 
         self.pubs["tunnel"] = self.create_publisher(
-            geometry_msgs.msg.Wrench, '/CSEI/thrusters/tunnel/command', 1)
+            geometry_msgs.msg.Wrench, 'thruster/tunnel/command', 1)
         self.pubs["port"] = self.create_publisher(
-            geometry_msgs.msg.Wrench, '/CSEI/thrusters/port/command', 1)
+            geometry_msgs.msg.Wrench, 'thruster/port/command', 1)
         self.pubs["starboard"] = self.create_publisher(
-            geometry_msgs.msg.Wrench, '/CSEI/thrusters/starboard/command', 1)
+            geometry_msgs.msg.Wrench, 'thruster/starboard/command', 1)
 
         self.pubs["eta"] = self.create_publisher(
             std_msgs.msg.Float32MultiArray, '/tmr4243/state/eta', 1)
@@ -96,6 +96,7 @@ class UtilityNode(rclpy.node.Node):
         self.pubs['tau'].publish(msg)
 
     def u_command_callback(self, msg: std_msgs.msg.Float32MultiArray):
+
         # Check if the message is of correct size
         if len(msg.data) != 5:
             self.get_logger().warn(
