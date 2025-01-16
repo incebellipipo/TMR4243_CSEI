@@ -64,6 +64,7 @@ class Observer(rclpy.node.Node):
                 additional_constraints=f"Allowed values: {' '.join(Observer.TASK_LIST)}"
             )
         )
+        self.task = self.get_parameter('task').get_parameter_value().string_value
 
         self.L1_value = [1.0] * 3
         self.declare_parameter(
@@ -98,21 +99,23 @@ class Observer(rclpy.node.Node):
             )
         )
 
+        self.L1_value = self.get_parameter('L1').get_parameter_value().double_array_value
+        self.L2_value = self.get_parameter('L2').get_parameter_value().double_array_value
+        self.L3_value = self.get_parameter('L3').get_parameter_value().double_array_value
+
+        self.get_logger().info(f"Task: {self.task}")
+
         self.last_eta = np.zeros((3, 1), dtype=float)
 
-        self.last_tau = np.zerso((3, 1), dtype=float)
+        self.last_tau = np.zeros((3, 1), dtype=float)
 
         self.observer_runner = self.create_timer(0.1, self.observer_loop)
 
     def observer_loop(self):
 
-        self.L1_value = self.get_parameter('L1').get_parameter_value().double_array_value
-        self.L2_value = self.get_parameter('L2').get_parameter_value().double_array_value
-        self.L3_value = self.get_parameter('L3').get_parameter_value().double_array_value
-
-        L1 = np.diag(self.L1_value, dtype=float)
-        L2 = np.diag(self.L2_value, dtype=float)
-        L3 = np.diag(self.L3_value, dtype=float)
+        L1 = np.diag(self.L1_value)
+        L2 = np.diag(self.L2_value)
+        L3 = np.diag(self.L3_value)
 
         eta_hat, nu_hat, bias_hat = luenberger(
             self.last_eta,
@@ -129,10 +132,10 @@ class Observer(rclpy.node.Node):
         self.pubs['observer'].publish(obs)
 
     def tau_callback(self, msg: std_msgs.msg.Float32MultiArray):
-        self.last_tau = np.ndarray([msg.data], dtype=float).T
+        self.last_tau = np.array([msg.data], dtype=float).T
 
     def eta_callback(self, msg: std_msgs.msg.Float32MultiArray):
-        self.last_eta = np.ndarray([msg.data], dtype=float).T
+        self.last_eta = np.array([msg.data], dtype=float).T
 
 
 def main():
