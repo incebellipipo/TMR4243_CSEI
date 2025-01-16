@@ -16,5 +16,5 @@ def joystick_force_basin_relative(
     ## Write your code below
     #
 
-    u = np.ndarray([[0, u1, u2, a1, a2]], dtype=float).T
+    u = np.array([[0, u1, u2, a1, a2]], dtype=float).T
     return u
