@@ -31,5 +31,5 @@
         "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
         "source=/dev/dri,target=/dev/dri,type=bind,consistency=cached"
     ],
-    "postCreateCommand": "sudo rosdep update && sudo rosdep install --from-paths src --ignore-src -y && sudo chown -R developer:developer /home/developer/ros_ws/src"
+    "postCreateCommand": "sudo chown -R developer:developer /home/developer/ros_ws/src"
 }
