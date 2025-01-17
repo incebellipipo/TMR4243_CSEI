@@ -21,12 +21,12 @@ python.
 
 1. Clone the repository inside the workspace
     ```bash
-    git clone https://github.com/NTNU-MCS/TMR4243_LAB.git ~/ros_ws/src
+    git clone https://github.com/NTNU-MCS/TMR4243_LAB.git ~/ros_ws/src/TMR4243_LAB
     ```
 
 1. Clone the `cybership_software_suite` repository inside the workspace
     ```bash
-    git clone https://github.com/NTNU-MCS/cybership_software_suite.git ~/ros_ws/src
+    git clone https://github.com/NTNU-MCS/cybership_software_suite.git ~/ros_ws/src/cybership_software_suite
     ```
 
 1. Install ROS dependencies
