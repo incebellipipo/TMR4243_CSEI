@@ -17,14 +17,14 @@ def joystick_simple(
     u1 = np.linalg.norm(np.array((
         joystick.axes[mapping.LEFT_STICK_HORIZONTAL], joystick.axes[mapping.LEFT_STICK_VERTICAL]
     )))
-    a1 = np.arctan2(joystick.axes[mapping.LEFT_STICK_VERTICAL], joystick.axes[mapping.LEFT_STICK_HORIZONTAL])
+    a1 = np.arctan2(joystick.axes[mapping.LEFT_STICK_HORIZONTAL], joystick.axes[mapping.LEFT_STICK_VERTICAL])
 
     # Starboard
     u2 = np.linalg.norm(np.array((
         joystick.axes[mapping.RIGHT_STICK_HORIZONTAL], joystick.axes[mapping.RIGHT_STICK_VERTICAL]
     )))
-    a2 = np.arctan2(joystick.axes[mapping.RIGHT_STICK_VERTICAL], joystick.axes[mapping.RIGHT_STICK_HORIZONTAL])
+    a2 = np.arctan2(joystick.axes[mapping.RIGHT_STICK_HORIZONTAL], joystick.axes[mapping.RIGHT_STICK_VERTICAL])
 
 
-    u = np.ndarray([[u0, u1, u2, a1, a2]], dtype=float).T
+    u = np.array([[u0, u1, u2, a1, a2]], dtype=float).T
     return u
