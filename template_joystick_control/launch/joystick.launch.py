@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 
+import os
 import launch
 import launch.actions
 import launch.substitutions
 import launch_ros.actions
 from tmr4243_utilities.utilities import anon
+from ament_index_python.packages import get_package_share_directory
 
 
 def generate_launch_description():
 
-    arg_param_file = launch.actions.DeclareLaunchArgument(
-        'param_file',
-        default_value=launch.substitutions.PathJoinSubstitution(
-            [launch_ros.substitutions.FindPackageShare('template_joystick_control'), 'config', 'param.yaml']
-        )
+    param_file = os.path.join(
+        get_package_share_directory('template_joystick_control'),
+        'config',
+        'param.yaml'
     )
 
     arg_task = launch.actions.DeclareLaunchArgument(
@@ -29,6 +30,7 @@ def generate_launch_description():
         name=f'{anon()}joystick_control',
         parameters=[
                 {'task': launch.substitutions.LaunchConfiguration('task')},
+                param_file
         ],
         output='screen'
     )
@@ -41,7 +43,6 @@ def generate_launch_description():
 
     return launch.LaunchDescription([
         arg_task,
-        arg_param_file,
         node_joystick_control,
         node_joy
     ])

@@ -36,8 +36,8 @@ from template_joystick_control.joystick_force_body_relative import joystick_forc
 
 
 class JoystickControl(rclpy.node.Node):
-    TASK_SIMPLE = 'stationkeeping'
-    TASK_BASIN = 'straight_line'
+    TASK_SIMPLE = 'simple'
+    TASK_BASIN = 'basin'
     TASK_BODY = 'body'
     TASKS = [TASK_SIMPLE, TASK_BODY, TASK_BASIN]
 
@@ -70,26 +70,17 @@ class JoystickControl(rclpy.node.Node):
 
         self.joystick_mapping = JoystickMapping()
 
-        self.joystick_mapping.LEFT_STICK_HORIZONTAL = self.declare_parameter(
-            'LEFT_STICK_HORIZONTAL', 0).get_parameter_value().integer_value
-        self.joystick_mapping.LEFT_STICK_VERTICAL = self.declare_parameter(
-            'LEFT_STICK_VERTICAL', 1).get_parameter_value().integer_value
-        self.joystick_mapping.RIGHT_STICK_HORIZONTAL = self.declare_parameter(
-            'RIGHT_STICK_HORIZONTAL', 2).get_parameter_value().integer_value
-        self.joystick_mapping.RIGHT_STICK_VERTICAL = self.declare_parameter(
-            'RIGHT_STICK_VERTICAL', 3).get_parameter_value().integer_value
-        self.joystick_mapping.LEFT_TRIGGER = self.declare_parameter(
-            'LEFT_TRIGGER', 4).get_parameter_value().integer_value
-        self.joystick_mapping.RIGHT_TRIGGER = self.declare_parameter(
-            'RIGHT_TRIGGER', 5).get_parameter_value().integer_value
-        self.joystick_mapping.A_BUTTON = self.declare_parameter(
-            'A_BUTTON', 0).get_parameter_value().integer_value
-        self.joystick_mapping.B_BUTTON = self.declare_parameter(
-            'B_BUTTON', 1).get_parameter_value().integer_value
-        self.joystick_mapping.X_BUTTON = self.declare_parameter(
-            'X_BUTTON', 2).get_parameter_value().integer_value
-        self.joystick_mapping.Y_BUTTON = self.declare_parameter(
-            'Y_BUTTON', 3).get_parameter_value().integer_value
+        joystick_params = [
+            'LEFT_STICK_HORIZONTAL', 'LEFT_STICK_VERTICAL', 'RIGHT_STICK_HORIZONTAL', 
+            'RIGHT_STICK_VERTICAL', 'LEFT_TRIGGER', 'RIGHT_TRIGGER', 
+            'A_BUTTON', 'B_BUTTON', 'X_BUTTON', 'Y_BUTTON'
+        ]
+
+        for param in joystick_params:
+            self.declare_parameter(param, 0)
+
+        for param in joystick_params:
+            setattr(self.joystick_mapping, param, self.get_parameter(param).value)
 
         self.last_eta_msg = std_msgs.msg.Float32MultiArray()
 
@@ -99,15 +90,15 @@ class JoystickControl(rclpy.node.Node):
         self.task = self.get_parameter('task').get_parameter_value().string_value
 
         self.get_logger().info(
-            f"Parameter task: {self.current_task.value}", throttle_duration_sec=1.0)
+            f"Parameter task: {self.task}", throttle_duration_sec=1.0)
 
     def joy_callback(self, msg):
         result = np.zeros((5, 1), dtype=float)
 
-        if JoystickControl.TASK_SIMPLE in self.task:
+        if self.task == JoystickControl.TASK_SIMPLE:
             result = joystick_simple(msg, self.joystick_mapping)
 
-        elif JoystickControl.TASK_BASIN in self.task:
+        elif self.task == JoystickControl.TASK_BASIN:
 
             if self.last_eta_msg is None:
                 self.get_logger().warn(f"Last eta message is {self.last_eta_msg}, cannot basin relative", throttle_duration_sec=1.0)
@@ -118,9 +109,9 @@ class JoystickControl(rclpy.node.Node):
                     f"Last eta message has length of {len(self.last_eta_msg.data)} but it should be 3. Aborting...", throttle_duration_sec=1.0)
                 return
 
-            result = joystick_force_basin_relative(msg, np.ndarray(self.last_eta_msg.data, dtype=float), self.joystick_mapping)
+            result = joystick_force_basin_relative(msg, np.array(self.last_eta_msg.data, dtype=float), self.joystick_mapping)
 
-        elif JoystickControl.TASK_BODY in self.task:
+        elif self.task == JoystickControl.TASK_BODY:
             result = joystick_force_body_relative(msg, self.joystick_mapping)
 
 
