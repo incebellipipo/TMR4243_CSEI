@@ -95,7 +95,7 @@ class Controller(rclpy.node.Node):
         self.k2_gain = [1.0, 1.0, 1.0]
         self.declare_parameter(
             "k2_gain",
-            1.0,
+            self.k2_gain,
             rcl_interfaces.msg.ParameterDescriptor(
                 description="K2 gain",
                 type=rcl_interfaces.msg.ParameterType.PARAMETER_DOUBLE_ARRAY,
@@ -115,6 +115,12 @@ class Controller(rclpy.node.Node):
             )
         )
 
+        self.p_gain = self.get_parameter("p_gain").get_parameter_value().double_value
+        self.i_gain = self.get_parameter("i_gain").get_parameter_value().double_value
+        self.d_gain = self.get_parameter("d_gain").get_parameter_value().double_value
+        self.k1_gain = self.get_parameter("k1_gain").get_parameter_value().double_array_value
+        self.k2_gain = self.get_parameter("k2_gain").get_parameter_value().double_array_value
+
         self.last_reference = None
 
         self.last_observation = None
@@ -129,11 +135,6 @@ class Controller(rclpy.node.Node):
     def timer_callback(self):
 
         self.task = self.get_parameter("task").get_parameter_value().string_value
-        self.p_gain = self.get_parameter("p_gain").get_parameter_value().double_value
-        self.i_gain = self.get_parameter("i_gain").get_parameter_value().double_value
-        self.d_gain = self.get_parameter("d_gain").get_parameter_value().double_value
-        self.k1_gain = self.get_parameter("k1_gain").get_parameter_value().double_array_value
-        self.k2_gain = self.get_parameter("k2_gain").get_parameter_value().double_array_value
 
         self.get_logger().info(f"Parameter task: {self.task}", throttle_duration_sec=1.0)
 
