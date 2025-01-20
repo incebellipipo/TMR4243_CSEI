@@ -24,6 +24,9 @@ RUN git clone https://github.com/NTNU-MCS/cybership_software_suite.git && \
 # Install ROS dependencies
 WORKDIR /home/developer/ros_ws
 RUN \
+    python3 -m venv venv --system-site-packages --symlinks && \
+    source venv/bin/activate && \
+    touch venv/COLCON_IGNORE && \
     sudo apt update && \
     rosdep update && \
     rosdep install --from-paths src --ignore-src -r -y
@@ -31,7 +34,7 @@ RUN \
 RUN sudo rm -rf /var/lib/apt/lists/*
 
 # Build the workspace
-RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && colcon build --symlink-install"
+RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && source /home/developer/ros_ws/venv/bin/activate && colcon build --symlink-install"
 
 # Source the workspace setup script
 RUN echo "source ~/ros_ws/install/setup.bash" >> ~/.bashrc
