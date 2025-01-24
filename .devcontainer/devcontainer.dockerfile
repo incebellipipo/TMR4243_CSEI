@@ -7,15 +7,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"]
 RUN echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 
+USER developer
+
 # Create workspace
 RUN mkdir -p /home/developer/ros_ws/src
 
 # Clone the repositories
 WORKDIR /home/developer/ros_ws/src
-
-# RUN git clone https://github.com/NTNU-MCS/TMR4243_LAB.git && \
-#     cd TMR4243_LAB && \
-#     git submodule update --init --recursive
 
 RUN git clone https://github.com/NTNU-MCS/cybership_software_suite.git && \
     cd cybership_software_suite && \
@@ -38,6 +36,7 @@ RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && source /home/developer/ros
 
 # Source the workspace setup script
 RUN echo "source ~/ros_ws/install/setup.bash" >> ~/.bashrc
+RUN echo "source ~/ros_ws/venv/bin/activate" >> ~/.bashrc
 
 # Set the entrypoint to bash
 ENTRYPOINT ["/bin/bash"]
