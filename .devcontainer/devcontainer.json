@@ -2,34 +2,42 @@
     "name": "ROS 2 Development Container",
     "privileged": true,
     "build": {
-        "dockerfile": "../devcontainer.dockerfile"
+        "dockerfile": "devcontainer.dockerfile"
     },
-    "workspaceFolder": "/home/developer/ros_ws/src/${localWorkspaceFolderBasename}/",
-    "workspaceMount": "source=${localWorkspaceFolder},target=/home/developer/ros_ws/src/${localWorkspaceFolderBasename},type=bind",
+    // Make sure to use the Docker bind syntax for your workspaceMount as well
+    "workspaceMount": "type=bind,source=${localWorkspaceFolder},target=/home/developer/ros_ws/src/${localWorkspaceFolderBasename}",
+    "workspaceFolder": "/home/developer/ros_ws/src/${localWorkspaceFolderBasename}",
+
     "containerUser": "developer",
     "customizations": {
         "vscode": {
-            "extensions":[
+            "extensions": [
                 "ms-vscode.cpptools",
+                "ms-vscode.cpptools-extension-pack",
                 "ms-vscode.cpptools-themes",
                 "twxs.cmake",
                 "donjayamanne.python-extension-pack",
                 "eamodio.gitlens",
-                "ms-iot.vscode-ros"
+                "ms-iot.vscode-ros",
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-toolsai.jupyter",
+                "ms-vscode-remote.remote-containers",
+                "ms-python.autopep8"
             ]
         }
     },
     "containerEnv": {
-        "DISPLAY": "unix:0",
+        // "DISPLAY": "unix:0",
         "ROS_AUTOMATIC_DISCOVERY_RANGE": "LOCALHOST"
     },
     "runArgs": [
         "--net=host",
-        "-e", "DISPLAY=${env:DISPLAY}"
+        // "-e", "DISPLAY=${env:DISPLAY}"
     ],
     "mounts": [
-        "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
-        "source=/dev/dri,target=/dev/dri,type=bind,consistency=cached"
+        // "type=bind,source=/tmp/.X11-unix,target=/tmp/.X11-unix,consistency=cached",
+        // "type=bind,source=/dev/dri,target=/dev/dri,consistency=cached"
     ],
     "postCreateCommand": "sudo chown -R developer:developer /home/developer/ros_ws/src"
 }
