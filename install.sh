@@ -41,8 +41,17 @@ mkdir -p ~/ros_ws/src
 
 # Clone the repositories
 cd ~/ros_ws/src
-git clone https://github.com/NTNU-MCS/TMR4243_LAB.git
-git clone https://github.com/NTNU-MCS/cybership_software_suite.git
+if [ ! -d "TMR4243_LAB" ]; then
+    git clone https://github.com/NTNU-MCS/TMR4243_LAB.git
+else
+    echo "TMR4243_LAB already cloned."
+fi
+
+if [ ! -d "cybership_software_suite" ]; then
+    git clone https://github.com/NTNU-MCS/cybership_software_suite.git
+else
+    echo "cybership_software_suite already cloned."
+fi
 
 # Get all the submodules for cybership_software_suite
 cd ~/ros_ws/src/cybership_software_suite
@@ -55,9 +64,12 @@ source venv/bin/activate
 touch venv/COLCON_IGNORE
 
 # Install python dependencies to virtual environment
-find src/cybership_software_suite -name "requirements*txt" -exec pip install -r {} \;
+find src/ -name "requirements*txt" -exec pip install -r {} \;
 
 # Install ROS dependencies
+if ! rosdep list 1>/dev/null 2>&1; then
+    sudo rosdep init
+fi
 rosdep update
 rosdep install --from-paths src --ignore-src -r -y
 
@@ -66,8 +78,13 @@ source /opt/ros/jazzy/setup.bash
 colcon build --symlink-install
 
 # Source the workspace setup script
-echo "source ~/ros_ws/venv/bin/activate" >> ~/.bashrc
-echo "source ~/ros_ws/install/setup.bash" >> ~/.bashrc
+if ! grep -Fxq "source ~/ros_ws/venv/bin/activate" ~/.bashrc; then
+    echo "source ~/ros_ws/venv/bin/activate" >> ~/.bashrc
+fi
+
+if ! grep -Fxq "source ~/ros_ws/install/setup.bash" ~/.bashrc; then
+    echo "source ~/ros_ws/install/setup.bash" >> ~/.bashrc
+fi
 source ~/.bashrc
 
 echo "Installation completed successfully!"
