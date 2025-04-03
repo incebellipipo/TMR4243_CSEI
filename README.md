@@ -19,27 +19,24 @@ python.
     mkdir -p ~/ros_ws/src
     ```
 
-1. Clone the repository inside the workspace
-    ```bash
-    git clone https://github.com/NTNU-MCS/TMR4243_LAB.git ~/ros_ws/src/TMR4243_LAB
-    ```
+1. Go to the [Cybership Software Suite Repository](https://github.com/NTNU-MCS/cybership_software_suite) Follow the installation instructions for Cybership Software Suite
 
-1. Clone the `cybership_software_suite` repository inside the workspace
+1. Navigate to the workspace and clone the repository inside the workspace
     ```bash
-    git clone https://github.com/NTNU-MCS/cybership_software_suite.git ~/ros_ws/src/cybership_software_suite
+    cd ~/ros_ws/src
+    git clone https://github.com/NTNU-MCS/TMR4243_LAB.git
     ```
 
 1. Install ROS dependencies
     ```bash
+    cd ~/ros_ws
     rosdep install --from-paths src --ignore-src -r -y
     ```
 
-1. After installation, install the required python packages.
+1. After installation, install the required python packages. You should be inside a python virtual environment from the Cybership Software Suite setup.
     ```bash
-    sudo apt install python3-numpy python3-scipy
+    find ~/ros_ws/src -name "requirements*txt" -exec pip install -r {} \;
     ```
-
-    Note: On Ubuntu 24, python packages are now installed with `apt`, and most packages can be found with `python3-` prefix.
 
 1. If there is any problem with the instructions, [create a github issue](https://github.com/NTNU-MCS/TMR4243_LAB/issues/new).
 
